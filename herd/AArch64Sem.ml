@@ -3159,6 +3159,38 @@ module Make
       let stzg = do_stzg Once
       and stz2g = do_stzg Twice
 
+      let irg (rd : AArch64Base.reg) rn rm ii =
+        (* TODO: read GCR_EL1.RRND *)
+        (* TODO: read GCR_EL1.Exclude *)
+        (* TODO: pseudo-random with RGSR_EL1 *)
+        let ( let* ) = ( >>= ) in
+        let* (vn, vm) =
+          read_reg_ord rn ii >>|
+            read_reg_ord rm ii
+        in
+        let set_tag n =
+          let tag = V.Val (Constant.Tag ("t" ^ string_of_int n)) in
+          let* v = M.op Op.SetTag vn tag in
+          write_reg_dest rd v ii
+          >>= B.nextSetT rd
+        in
+        let do_irg n =
+          let* () = M.isBitUnsetT vm (V.intToV n) in
+          set_tag n
+        in
+        let* is_all_ones =
+          let all_ones_mask = V.intToV 0xFFFF in
+          let* masked = M.op Op.And vm all_ones_mask in
+          M.op Op.Eq masked all_ones_mask
+        in
+        M.choiceT
+          is_all_ones
+          (set_tag 0)
+          (match List.init 16 Fun.id with
+          | h::t ->
+            List.fold_right M.altT (List.map do_irg t) (do_irg h)
+          | _ -> (* impossible *) assert false)
+
 (*********************)
 (* Instruction fetch *)
 (*********************)
@@ -3351,6 +3383,9 @@ module Make
         | I_LDG (rt,rn,k) ->
             check_memtag "LDG" ;
             ldg rt rn k ii
+        | I_IRG (rd,rn,rm) ->
+            check_memtag "IRG" ;
+            irg rd rn rm ii
         | I_STXR(var,t,rr,rs,rd) ->
             stxr (tr_variant var) t rr rs rd ii
         | I_STXRBH(bh,t,rr,rs,rd) ->
