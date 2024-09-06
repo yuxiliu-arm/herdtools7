@@ -3199,12 +3199,25 @@ module Make
           let* rgsr_el1 = read_reg_ord AArch64Base.(SysReg RGSR_EL1) ii in
           let* lfsr = M.op Op.And rgsr_el1 ffff in
           let* top =
+            let bit n = M.bitT lfsr (V.intToV n) in 
             let eor = M.op Op.Xor in
-            M.bitT lfsr 5 >>| M.bitT lfsr 3 >>| M.bitT lfsr 2 >>| M.bitT lfsr 0 >>=
-              fun (((lfsr5, lfsr3), lfsr2), lfsr0) ->
-                eor lfsr5 lfsr3 >>= eor lfsr2 >>= eor lfsr0
+            bit 5 >>| bit 3 >>| bit 2 >>| bit 0 >>=
+              fun (((b5, b3), b2), b0) ->
+                eor b5 b3 >>= eor b2 >>= eor b0
           in
-          let new_seed = M.op Op.ShiftLeft 15 >>= M.op Op.Or
+          let new_seed () =
+            M.op Op.ShiftLeft top (V.intToV 15) >>|
+              M.op Op.ShiftRight lfsr V.one >>= fun (top, lfsr_15_1) ->
+                  M.op Op.Or top lfsr_15_1 >>= fun new_seed ->
+                    M.op Op.ShiftLeft new_seed (V.intToV 8)
+          in
+          let* new_rgsr_el1 =
+            M.op Op.And rgsr_el1 (V.int64ToV 0xFFFF_FFFF_FF00_00FFL) >>|
+              new_seed () >>= fun (lfsr, new_seed) ->
+                M.op Op.Or lfsr new_seed
+          in
+          let* () = write_reg AArch64Base.(SysReg RGSR_EL1) new_rgsr_el1 ii in
+          M.unitT top
         in
         let is_ones_16 bits = M.op Op.And bits ffff >>= M.op Op.Eq ffff in
         (* TODO:
