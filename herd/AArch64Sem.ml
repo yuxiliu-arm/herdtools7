@@ -3199,7 +3199,7 @@ module Make
           let* rgsr_el1 = read_reg_ord AArch64Base.(SysReg RGSR_EL1) ii in
           let* lfsr = M.op Op.And rgsr_el1 ffff in
           let* top =
-            let bit n = M.bitT lfsr (V.intToV n) in 
+            let bit n = M.bitT lfsr (V.intToV n) in
             let eor = M.op Op.Xor in
             bit 5 >>| bit 3 >>| bit 2 >>| bit 0 >>=
               fun (((b5, b3), b2), b0) ->
@@ -3218,6 +3218,23 @@ module Make
           in
           let* () = write_reg AArch64Base.(SysReg RGSR_EL1) new_rgsr_el1 ii in
           M.unitT top
+        in
+        (* AArch64.RandomTag *)
+        let aarch64_random_tag () =
+          let rec go acc = function
+            | 4 -> acc
+            | n ->
+                let* acc = acc in
+                let acc = Int.shift_left acc 1 in
+                let acc =
+                  do_choice
+                    (aarch64_next_random_tag_bit ())
+                    (M.unitT (acc + 1))
+                    (M.unitT acc)
+                in
+                go acc (n+1)
+          in
+          go (M.unitT 0) 0
         in
         let is_ones_16 bits = M.op Op.And bits ffff >>= M.op Op.Eq ffff in
         (* TODO:
