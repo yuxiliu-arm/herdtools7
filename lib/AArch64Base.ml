@@ -99,7 +99,9 @@ type sysreg =
   MDCCSR_EL0 | DBGDTR_EL0 |
   DBGDTRRX_EL0 | DBGDTRTX_EL0 |
   ELR_EL1 | ESR_EL1 | SYS_NZCV |
-  TFSR_ELx | VNCR_EL2
+  TFSR_ELx | VNCR_EL2 |
+  (* memory tagging *)
+  GCR_EL1 | RGSR_EL1
 
 let sysregs = [
     CTR_EL0, "CTR_EL0";
@@ -113,6 +115,8 @@ let sysregs = [
     SYS_NZCV, "NZCV";
     TFSR_ELx, "TFSR_ELx";
     VNCR_EL2, "VNCR_EL2";
+    GCR_EL1, "GCR_EL1";
+    RGSR_EL1, "RGSR_EL1";
   ]
 
 let sysregs_map = [
