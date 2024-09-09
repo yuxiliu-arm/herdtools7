@@ -20,5 +20,5 @@ Witnesses
 Positive: 15 Negative: 0
 Condition forall (not (0:X1=x:t0))
 Observation Y002 Always 15 0
-Hash=39f2c8b7b5ca12b960e5c7ab7722449a
+Hash=ed1566b5c2f9bcac042a6f3e33dce703
 
