@@ -3195,18 +3195,18 @@ module Make
       and stz2g = do_stzg Twice
 
       let irg (rd : AArch64Base.reg) rn rm ii =
-        (* TODO: read GCR_EL1.RRND *)
-        (* TODO: pseudo-random with RGSR_EL1 *)
         let ( let* ) = ( >>= ) in
         (* if then else *)
         let do_choice mcond m1 m2 =
           let* cond = mcond in
           M.choiceT cond m1 m2
         in
+        let reg_gcr_el1 = AArch64Base.(SysReg GCR_EL1) in
+        let reg_rgsr_el1 = AArch64Base.(SysReg RGSR_EL1) in
         let* ((vn, vm), gcr_el1) =
           read_reg_ord rn ii >>|
             read_reg_ord rm ii >>|
-              read_reg_ord AArch64Base.(SysReg GCR_EL1) ii
+              read_reg_ord reg_gcr_el1 ii
         in
         let ffff = V.intToV 0xFFFF in
         let* exclude =
@@ -3224,7 +3224,7 @@ module Make
         in
         (* AArch64.NextRandomTagBit *)
         let aarch64_next_random_tag_bit () =
-          let* rgsr_el1 = read_reg_ord AArch64Base.(SysReg RGSR_EL1) ii in
+          let* rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in
           let* lfsr = M.op Op.And rgsr_el1 ffff in
           let* top =
             let bit n = M.bitT lfsr (V.intToV n) in
@@ -3233,30 +3233,30 @@ module Make
               fun (((b5, b3), b2), b0) ->
                 eor b5 b3 >>= eor b2 >>= eor b0
           in
-          let new_seed () =
-            M.op Op.ShiftLeft top (V.intToV 15) >>|
-              M.op Op.ShiftRight lfsr V.one >>= fun (top, lfsr_15_1) ->
-                  M.op Op.Or top lfsr_15_1 >>= fun new_seed ->
-                    M.op Op.ShiftLeft new_seed (V.intToV 8)
-          in
           let* new_rgsr_el1 =
-            M.op Op.And rgsr_el1 (V.int64ToV 0xFFFF_FFFF_FF00_00FFL) >>|
-              new_seed () >>= fun (lfsr, new_seed) ->
-                M.op Op.Or lfsr new_seed
+            let* new_seed = 
+              M.op Op.ShiftLeft top (V.intToV 15) >>|
+                M.op Op.ShiftRight lfsr V.one >>= fun (top, lfsr_15_1) ->
+                    M.op Op.Or top lfsr_15_1 >>= fun new_seed ->
+                      M.op Op.ShiftLeft new_seed (V.intToV 8)
+            in
+            let* lfsr = M.op Op.And rgsr_el1 (V.int64ToV 0xFFFF_FFFF_FF00_00FFL) in
+            M.op Op.Or lfsr new_seed
           in
-          let* () = write_reg AArch64Base.(SysReg RGSR_EL1) new_rgsr_el1 ii in
+          let* () = write_reg reg_rgsr_el1 new_rgsr_el1 ii in
           M.unitT top
         in
         (* AArch64.RandomTag *)
         let aarch64_random_tag () =
           let rec go acc = function
-            | 4 -> acc
+            | 5 -> acc
             | n ->
                 let* acc = acc in
                 let acc = Int.shift_left acc 1 in
+                let* choice = aarch64_next_random_tag_bit () in
                 let acc =
-                  do_choice
-                    (aarch64_next_random_tag_bit ())
+                  M.choiceT
+                    choice
                     (M.unitT (acc + 1))
                     (M.unitT acc)
                 in
@@ -3288,12 +3288,12 @@ module Make
             else go tag_in offset_in
         in
         let set_rgsr_el1_tag tag =
-          let* rgsr_el1 = read_reg_ord AArch64Base.(SysReg RGSR_EL1) ii in
+          let* rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in
           let* new_rgsr_el1 =
             M.op Op.And rgsr_el1 (V.int64ToV 0xFFFF_FFFF_FFFF_FFF0L) >>=
               M.op Op.Or tag
           in
-          write_reg AArch64Base.(SysReg RGSR_EL1) new_rgsr_el1 ii
+          write_reg_dest reg_rgsr_el1 new_rgsr_el1 ii
         in
 
         let is_ones_16 bits = M.op Op.And bits ffff >>= M.op Op.Eq ffff in
@@ -3303,27 +3303,32 @@ module Make
           else
             rtag = '0000'
          *)
-        let* rtag =
+        let* (rtag, new_rgsr_el1_opt) =
           do_choice
             (M.bitT gcr_el1 (V.intToV 16)) (* GCR_EL1.RRND == '1' *)
             (do_choice
                (is_ones_16 exclude)
-               (M.unitT 0)
-               (choose_random_non_excluded_tag exclude))
+               (M.unitT (0, None))
+               (choose_random_non_excluded_tag exclude >>= fun rtag -> M.unitT (rtag, None)))
             begin
-              let* rgsr_el1 = read_reg_ord AArch64Base.(SysReg RGSR_EL1) ii in
+              let* rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in
               let* start_tag = M.op Op.And rgsr_el1 (V.intToV 0xF) >>= int_of_bits 4 in
               let* offset = aarch64_random_tag () in
               let* exclude = int_of_bits 4 exclude in
               let rtag = aarch64_choose_non_excluded_tag start_tag offset exclude in
-              let* () = set_rgsr_el1_tag (V.intToV rtag) in
-              M.unitT rtag
+              let* new_rgsr_el1 = set_rgsr_el1_tag (V.intToV rtag) in
+              M.unitT (rtag, Some new_rgsr_el1)
             end
         in
         let tag = V.Val (Constant.Tag ("t" ^ string_of_int rtag)) in
         let* v = M.op Op.SetTag vn tag in
-        write_reg_dest rd v ii
-        >>= B.nextSetT rd
+        let* rdv = write_reg_dest rd v ii in
+        let bds =
+          match new_rgsr_el1_opt with
+          | None -> [(rd, rdv)]
+          | Some v -> [(rd, rdv); (reg_rgsr_el1, v)]
+        in
+        M.unitT (B.Next bds)
 
 (*********************)
 (* Instruction fetch *)
