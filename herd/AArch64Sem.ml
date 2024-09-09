@@ -600,9 +600,7 @@ module Make
         (n_bits : int)
         (v : global_loc) : 'a M.t =
         let rec go = function
-          | 0 ->
-              M.bitT v V.zero >>= fun bit ->
-                M.choiceT bit (f_one f_unit) (f_zero f_unit)
+          | 0 -> f_unit
           | n ->
               M.bitT v (V.intToV (n - 1)) >>= fun bit ->
                 let rest = go (n - 1) in
@@ -3295,7 +3293,7 @@ module Make
                (choose_random_non_excluded_tag exclude >>= fun rtag -> M.unitT (rtag, None)))
             begin
               let* rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in
-              let* start_tag = M.op Op.And rgsr_el1 (V.intToV 0xF) >>= int_of_bits 4 in
+              let* start_tag = M.op Op.And rgsr_el1 (V.intToV 0xF) >>= fun x -> Format.eprintf "start_tag: %s\n" (V.pp_v x); int_of_bits 4 x in
               let* seed = M.op Op.ShiftRight rgsr_el1 (V.intToV 8) >>= int_of_bits 16 in
               let (offset, seed) = aarch64_random_tag seed in
               let* exclude = int_of_bits 4 exclude in
