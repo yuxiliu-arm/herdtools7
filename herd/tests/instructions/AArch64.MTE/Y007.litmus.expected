@@ -1,0 +1,10 @@
+Test Y007 Required
+States 1
+0:X1=x:t0; 0:RGSR_EL1=0;
+Ok
+Witnesses
+Positive: 1 Negative: 0
+Condition forall (0:X1=x:t0 /\ 0:RGSR_EL1=0)
+Observation Y007 Always 1 0
+Hash=6311b17177a63130b5c44bbd60e06a50
+
