@@ -1,0 +1,4 @@
+Contradiction on reg 0:RGSR_EL1: loaded 5120 vs. stored 655360
+
+Fatal: File "./herd/tests/instructions/AArch64.MTE/Y008.litmus" Adios
+Fatal error: exception File "herd/mem.ml", line 841, characters 16-22: Assertion failed
