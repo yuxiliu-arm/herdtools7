@@ -3,6 +3,8 @@ AArch64 Y007
 {
 int x=100;
 0:X0=x;
+0:GCR_EL1=0;
+0:RGSR_EL1=0;
 }
  P0         ;
  IRG X1,X0  ; (* After IRG, RGSR_EL1 TAG=0, SEED=0 *)
