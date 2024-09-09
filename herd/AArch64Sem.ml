@@ -600,13 +600,15 @@ module Make
         (n_bits : int)
         (v : global_loc) : 'a M.t =
         let rec go = function
-          | 0 -> f_unit
+          | 0 ->
+              M.bitT v V.zero >>= fun bit ->
+                M.choiceT bit (f_one f_unit) (f_zero f_unit)
           | n ->
               M.bitT v (V.intToV (n - 1)) >>= fun bit ->
-              let rest = go (n - 1) in
-              M.choiceT bit (f_one rest) (f_zero rest)
+                let rest = go (n - 1) in
+                M.choiceT bit (f_one rest) (f_zero rest)
         in
-        go (n_bits + 1)
+        go n_bits
 
       (* convert a bit represented value to OCaml int *)
       let int_of_bits (n_bits : int) (v : global_loc) : int M.t =
@@ -3218,14 +3220,10 @@ module Make
           | _ -> (* impossible *) assert false
         in
         (* AArch64.NextRandomTagBit *)
-        let aarch64_next_random_tag_bit rgsr_el1 =
-          let* lfsr = M.op Op.And rgsr_el1 ffff in
-          let* top =
-            let bit n = M.bitT lfsr (V.intToV n) in
-            let eor = M.op Op.Xor in
-            bit 5 >>| bit 3 >>| bit 2 >>| bit 0 >>=
-              fun (((b5, b3), b2), b0) ->
-                eor b5 b3 >>= eor b2 >>= eor b0
+        let aarch64_next_random_tag_bit lfsr =
+          let bit i = Int.shift_right lfsr i |> Int.logand 1 in
+          let top =
+                Int.logxor (bit 5) (bit 3) |> Int.logxor ()
           in
           let* new_rgsr_el1 =
             let* new_seed = 
