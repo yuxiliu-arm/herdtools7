@@ -4,7 +4,7 @@ AArch64 Y009
   int x=100;
   0:X0=x;
   0:GCR_EL1=0;
-  0:RGSR_EL1=0x003A09; (* RGSR_EL1 SEED=0x003A TAG=9 *)
+  0:RGSR_EL1=0x003A09; (* SEED=0x003A TAG=9 *)
 }
 
 P0        ;
