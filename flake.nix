@@ -10,7 +10,7 @@
       in
       {
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ gmp pkg-config ] ++
+          buildInputs = with pkgs; [ gmp pkg-config graphviz ] ++
             pkgs.lib.optionals pkgs.stdenv.isDarwin
               [ pkgs.darwin.apple_sdk.frameworks.CoreServices ];
           shellHook = ''
