@@ -3334,6 +3334,7 @@ module Make
       and stz2g = do_stzg Twice
 
       let irg (rd : AArch64Base.reg) rn rm ii =
+        let debug = false in
         let ( let* ) = ( >>= ) in
         let reg_gcr_el1 = AArch64Base.(SysReg GCR_EL1) in
         let reg_rgsr_el1 = AArch64Base.(SysReg RGSR_EL1) in
@@ -3362,8 +3363,12 @@ module Make
           let top =
             Int.(logxor (logxor (logxor (bit 5) (bit 3)) (bit 2)) (bit 0))
           in
-          let new_seed = Int.shift_left top 15 + Int.shift_right lfsr 1 in
-          (top, new_seed)
+          let lfsr' = Int.shift_left top 15 + Int.shift_right lfsr 1 in
+          let () =
+            if debug then
+              Format.eprintf "lfsr: 0x%x, top: %d, lfsr': 0x%x\n" lfsr top lfsr'
+          in
+          (top, lfsr')
         in
         (* AArch64.RandomTag *)
         let aarch64_random_tag seed =
@@ -3380,6 +3385,10 @@ module Make
         in
         (* AArch64.ChooseNonExcludedTag *)
         let aarch64_choose_non_excluded_tag tag_in offset_in exclude =
+          let () =
+            if debug then
+              Format.eprintf "tag_in: 0x%x, offset_in: 0x%x, exclude: 0x%x\n" tag_in offset_in exclude
+          in
           if exclude = 0xFFFF
           then 0
           else
@@ -3433,7 +3442,9 @@ module Make
               let* rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in
               let* start_tag = M.op Op.And rgsr_el1 (V.intToV 0xF) >>= int_of_bits 4 in
               let* seed = M.op Op.ShiftRight rgsr_el1 (V.intToV 8) >>= int_of_bits 16 in
+              let () = if debug then Format.eprintf "seed: 0x%x\n" seed in
               let (offset, seed) = aarch64_random_tag seed in
+              let () = if debug then Format.eprintf "offset: 0x%x, seed: 0x%x\n" offset seed in
               let* exclude = int_of_bits 4 exclude in
               let rtag = aarch64_choose_non_excluded_tag start_tag offset exclude in
               let* new_rgsr_el1 = set_rgsr_el1 ~seed ~tag:rtag rgsr_el1 in
