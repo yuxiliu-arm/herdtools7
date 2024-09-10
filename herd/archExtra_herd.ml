@@ -708,6 +708,7 @@ module Make(C:Config) (I:I) : S with module I = I
       exception LocUndetermined
 
       let get_in_state loc st =
+        (* let () = Format.eprintf "st: %s\n" (pp_state st) in *)
         try get_val loc (State.find loc st)
         with Not_found ->
           let open Constant in
@@ -737,16 +738,24 @@ module Make(C:Config) (I:I) : S with module I = I
                 "Very strange location (look_address) %s\n"
                 (pp_location loc)
           | Location_global (I.V.Val (Symbolic (Virtual _|Physical _)))
-          | Location_reg _ -> reg_default_value
+          | Location_reg _ ->
+              Format.eprintf "reg_default_value: %s\n" (pp_location loc);
+              reg_default_value
 
       let get_of_val st a = State.safe_find I.V.zero (Location_global a) st
 
       let look_address_in_state st loc =
+        let () = Format.eprintf "st: %s\nloc: %s, " (pp_state st) (pp_location loc) in
         if some_undetermined_vars_in_loc loc then
+          let () = Format.eprintf "undetermined\n" in
             (* if loc is not determined, then we cannot get its
                content yet *)
             raise LocUndetermined
-        else get_in_state loc st
+        else
+          let () = Format.eprintf "determined\n" in
+          let v = get_in_state loc st in
+          let () = Format.eprintf "v: %s\n" (I.V.pp_v v) in
+          v
 
       (* Sizes *)
 

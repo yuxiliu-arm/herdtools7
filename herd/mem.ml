@@ -1,4 +1,5 @@
 (****************************************************************************)
+
 (*                           the diy toolsuite                              *)
 (*                                                                          *)
 (* Jade Alglave, University College London, UK.                             *)
@@ -828,16 +829,21 @@ let match_reg_events es =
           (fun wt rf csn -> match wt with
           | S.Final _ -> csn
           | S.Load load ->
+              let () = Format.eprintf "load: %s\n" (E.debug_event_str load) in
               let v_loaded = get_read load in
               let v_stored = get_rf_value test load rf in
               try add_eq v_loaded v_stored csn
               with Contradiction ->
                 let loc = Misc.as_some (E.location_of load) in
                 Printf.eprintf
-                  "Contradiction on reg %s: loaded %s vs. stored %s\n"
+                  "Contradiction on reg %s: loaded %s vs. stored %s\nload: %s, rf: %s"
                   (A.pp_location loc)
                   (A.V.pp_v v_loaded)
-                  (A.V.pp_v v_stored) ;
+                  (A.V.pp_v v_stored)
+                  (E.debug_event_str load)
+                  (match rf with
+          | S.Init -> "Init"
+          | S.Store e -> E.debug_event_str e);
                 assert false)
           rfm csn in
       if  C.debug.Debug_herd.solver then
