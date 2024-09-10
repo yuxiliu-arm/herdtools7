@@ -1,0 +1,13 @@
+AArch64 Y005
+{
+  int x=100;
+  0:X0=x;
+  (* 0:X1=0; *)
+  0:GCR_EL1=0x10000; (* RRND=1, Exclude=0 *)
+}
+
+P0            ;
+IRG X1,X0  ;
+
+forall (0:X1=2)
+
