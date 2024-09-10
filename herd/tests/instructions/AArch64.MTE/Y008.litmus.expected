@@ -1,10 +1,10 @@
 Test Y008 Required
 States 1
-0:X1=x:t0; 0:RGSR_EL1=163840;
-No
+0:X1=x:t12; 0:RGSR_EL1=3145996;
+Ok
 Witnesses
-Positive: 0 Negative: 1
-Condition forall (0:X1=x:t10 /\ 0:RGSR_EL1=5242890)
-Observation Y008 Never 0 1
+Positive: 1 Negative: 0
+Condition forall (0:X1=x:t12 /\ 0:RGSR_EL1=3145996)
+Observation Y008 Always 1 0
 Hash=fbb85f77dfa0c46db6367f09d5c77bbd
 

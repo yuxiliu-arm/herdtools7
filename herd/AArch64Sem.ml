@@ -610,11 +610,10 @@ module Make
 
       (* convert a bit represented value to OCaml int *)
       let int_of_bits (n_bits : int) (v : global_loc) : int M.t =
-        let next_bit ~is_one macc =
-          macc >>= fun acc ->
-            let acc = Int.shift_left acc 1 in
-            let acc = if is_one then acc + 1 else acc in
-            M.unitT acc
+        let next_bit ~is_one ma =
+          ma >>= fun (acc, cur) ->
+            let acc = if is_one then acc + cur else acc in
+            M.unitT (acc, Int.shift_left cur 1)
         in
         if n_bits > Sys.int_size
         then failwith "int_of_bits: too many bits for OCaml int"
@@ -622,8 +621,9 @@ module Make
           fold_right_bits
             ~f_one:(next_bit ~is_one:true)
             ~f_zero:(next_bit ~is_one:false)
-            ~f_unit:(M.unitT 0)
+            ~f_unit:(M.unitT (0, 1))
             n_bits v
+          >>= fun (acc, _) -> M.unitT acc
 
 (*******************)
 (* Memory accesses *)
@@ -3210,7 +3210,7 @@ module Make
         let choose_random_non_excluded_tag exclude =
           let do_irg n =
             let* () = M.isBitUnsetT exclude (V.intToV n) in
-            M.unitT n 
+            M.unitT n
           in
           match List.init 16 Fun.id with
           | h::t ->
@@ -3241,7 +3241,6 @@ module Make
         in
         (* AArch64.ChooseNonExcludedTag *)
         let aarch64_choose_non_excluded_tag tag_in offset_in exclude =
-          let () = Format.eprintf "tag_in: %d, offset_in: %d, exclude: %d\n" tag_in offset_in exclude in
           if exclude = 0xFFFF
           then 0
           else
@@ -3293,7 +3292,7 @@ module Make
                (choose_random_non_excluded_tag exclude >>= fun rtag -> M.unitT (rtag, None)))
             begin
               let* rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in
-              let* start_tag = M.op Op.And rgsr_el1 (V.intToV 0xF) >>= fun x -> Format.eprintf "start_tag: %s\n" (V.pp_v x); int_of_bits 4 x in
+              let* start_tag = M.op Op.And rgsr_el1 (V.intToV 0xF) >>= int_of_bits 4 in
               let* seed = M.op Op.ShiftRight rgsr_el1 (V.intToV 8) >>= int_of_bits 16 in
               let (offset, seed) = aarch64_random_tag seed in
               let* exclude = int_of_bits 4 exclude in
