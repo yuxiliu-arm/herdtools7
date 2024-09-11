@@ -3297,10 +3297,10 @@ module Make
                (choose_random_non_excluded_tag exclude >>= fun rtag -> M.unitT (rtag, None)))
             begin
               let* rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in
-              (* NOTE: there seems to be problem when a register is read and
-                 written multiple times in one instruction, so the RGSR_EL1
-                 value is lifted to OCaml for calculate the next seed and tag
-                 and written once in the end *)
+              (* NOTE: reads & writes to RGSR_EL1 appear in program order, see
+                 its system register configuration. Therefore, the value value
+                 is lifted to OCaml to calculate the next seed and tag with one
+                 read and one write. *)
               let* start_tag = M.op Op.And rgsr_el1 (V.intToV 0xF) >>= int_of_bits 4 in
               let* seed = M.op Op.ShiftRight rgsr_el1 (V.intToV 8) >>= int_of_bits 16 in
               if debug then Format.eprintf "seed: 0x%x\n" seed;
