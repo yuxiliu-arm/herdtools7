@@ -56,10 +56,7 @@ module Make(S : SemExtra.S) = struct
       (do_po_strict es e1 e2) ||           (* e1 is po-before e2 *)
       (if do_po_strict es e2 e1 then false (* e2 is po-before e1 *)
        else (* e1 and e2 are from the same instruction *)
-       let () = Format.eprintf "e1: %s, e2: %s " (E.debug_event_str e1) (E.debug_event_str e2) in
-       let res = E.EventRel.exists_path (e1,e2) iico in
-       let () = Format.eprintf "exists_path: %b\n" res in
-       res)
+       E.EventRel.exists_path (e1,e2) iico)
 
 (* Fence *)
   let po_fence_po po pred =
