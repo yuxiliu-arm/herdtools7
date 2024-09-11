@@ -3192,17 +3192,10 @@ module Make
       and stz2g = do_stzg Twice
 
       let irg (rd : AArch64Base.reg) _rn _rm ii =
-        let ( let* ) = ( >>= ) in
-        let* vd = read_reg_ord rd ii in
-        let () = Format.eprintf "vd: %s\n" (V.pp_v vd) in
-        let* vd' = M.op Op.Add vd V.one in
-        let () = Format.eprintf "vd': %s\n" (V.pp_v vd') in
-        let* () = write_reg rd vd' ii in
-        let* vd'' = read_reg_ord rd ii in
-        let () = Format.eprintf "vd'': %s\n" (V.pp_v vd'') in
-        let* vd''' = M.op Op.Add vd'' V.one in
-        let () = Format.eprintf "vd''': %s\n" (V.pp_v vd''') in
-        write_reg_dest rd vd''' ii >>= B.nextSetT rd
+        write_reg_dest rd V.one ii >>= fun one ->
+          read_reg_ord rd ii >>= fun v ->
+            Format.eprintf "v: %s\n" (V.pp_v v);
+            B.nextSetT rd one
 
 
 
