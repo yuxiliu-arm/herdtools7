@@ -342,7 +342,6 @@ module
       | _ -> binop_cs_cs Op.Or Cst.Scalar.logor v1 v2
 
   and xor v1 v2 =
-    if compare v1 v2 = 0 then zero else
     binop Op.Xor (Cst.Scalar.logxor) v1 v2
 
   and maskop op sz v = match v,sz with
