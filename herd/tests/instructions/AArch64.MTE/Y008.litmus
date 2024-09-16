@@ -17,7 +17,7 @@ IRG X1,X0 ;
 (* 0xC005      | 0 _0 0 1 _0 1   | 0   | 0x6003     *)
 (* 0x6003      | 0 _0 0 0 _1 0   | 0   | 0x3001     *)
 
-(* After IRG, RGSR_EL1 TAG=0b1100, SEED=0x3001 *)
+(* After IRG, RGSR_EL1 TAG=0b0011, SEED=0x3001 *)
 
-forall (0:X1=x:t12 /\ 0:RGSR_EL1=0x30010C)
+forall (0:X1=x:t3 /\ 0:RGSR_EL1=0x300103)
 
