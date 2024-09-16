@@ -1,0 +1,122 @@
+ASL YL-03
+
+(* IRG test, corresponding to herd/tests/instructions/AArch64.MTE/Y008.litmus *)
+(* [AArch64.RandomTag] and [AArch64.NextRandomTagBit] are rewritten to read and
+   write the [RGSR_EL1] register only once *)
+
+{
+  int x = 100;
+  0:X0 = x;
+  0:X3 = 0;
+}
+
+// system reg setup
+constant GCR_EL1_RRND :: bits(1) = '0';
+constant GCR_EL1_Exclude :: bits(16) = '0000000000000000';
+var RGSR_EL1_SEED :: bits(16) = '0000000000010100'; // 0x0014
+var RGSR_EL1_TAG :: bits(4) = '0000';
+
+func ChooseRandomNonExcludedTag(exclude :: bits(16)) => bits(4)
+begin
+  // TODO: how to do randomness? UNKNOWN doesn't seem to work
+  return '0001';
+end
+
+func AArch64_ChooseNonExcludedTag(tag_in :: bits(4), offset_in :: bits(4), exclude :: bits(16)) => bits(4)
+begin
+  var tag :: bits(4) = tag_in;
+  var offset :: bits(4) = offset_in;
+
+  if IsOnes(exclude) then
+    return '0000';
+  end
+
+  if offset == '0000' then
+    while exclude[UInt(tag)] == '1' do
+      tag = tag + '0001';
+    end
+  end
+
+  while offset != '0000' do
+      offset = offset - '0001';
+      tag = tag + '0001';
+      while exclude[UInt(tag)] == '1' do
+          tag = tag + '0001';
+      end
+  end
+
+  return tag;
+end
+
+func AArch64_NextRandomTagBit(seed : bits(16)) => (bit, bits(16))
+begin
+  assert GCR_EL1_RRND == '0';
+  constant lfsr :: bits(16) = seed[15:0];
+  constant top :: bit = lfsr[5] XOR lfsr[3] XOR lfsr[2] XOR lfsr[0];
+  let new_seed = [top, lfsr[15:1]];
+  return (top, new_seed);
+end
+
+func AArch64_RandomTag() => bits(4)
+begin
+    var tag :: bits(4);
+    var seed :: bits(16) = RGSR_EL1_SEED;
+    for i = 0 to 3 do
+      (tag[i], seed) = AArch64_NextRandomTagBit(seed);
+    end
+    RGSR_EL1_SEED = seed;
+    return tag;
+end
+
+func AArch64_AddressWithAllocationTag(operand: bits(64), tag: bits(4)) => bits(64)
+begin
+  return operand;
+end
+
+func IRG(d :: integer, n :: integer, m :: integer) => integer
+begin
+  // constant bits(64) operand = if n == 31 then SP[] else X[n, 64];
+  // constant operand :: bits(64) = read_register(n);
+  constant exclude_reg :: bits(64) = Zeros(64);
+  constant exclude :: bits(16) = exclude_reg[15:0] OR GCR_EL1_Exclude;
+  var rtag :: bits(4);
+
+
+  // if AArch64.AllocationTagAccessIsEnabled(PSTATE.EL) then
+  if GCR_EL1_RRND == '1' then
+      if IsOnes(exclude) then
+          rtag = '0000';
+      else
+          rtag = ChooseRandomNonExcludedTag(exclude);
+      end
+  else
+    constant start_tag :: bits(4) = RGSR_EL1_TAG;
+    constant offset :: bits(4) = AArch64_RandomTag();
+
+    rtag = AArch64_ChooseNonExcludedTag(start_tag, offset, exclude);
+    RGSR_EL1_TAG = rtag;
+  end
+
+  return UInt(rtag);
+      // RGSR_EL1.TAG = rtag;
+  // else
+  //     rtag = '0000';
+
+  // constant result :: bits(64) = AArch64_AddressWithAllocationTag(operand, rtag);
+
+  // if d == 31 then
+  //     SP[] = result;
+  // else
+  //     X[d, 64] = result;
+  // write_register(d, result);
+end
+
+func main() => integer
+begin
+  let tag = IRG(1, 0, 3);
+  let final_seed = UInt(RGSR_EL1_SEED);
+  let final_tag = UInt(RGSR_EL1_TAG);
+  return 0;
+end
+
+forall (0:main.0.tag = 3 /\ 0:main.0.final_seed = 0x3001 /\ 0:main.0.final_tag = 3)
