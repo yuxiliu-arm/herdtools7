@@ -19,15 +19,13 @@ IRG X1,X0,X2 ;
 (* 0x600C      | 0 _0 1 1 _0 0   | 0   | 0x3006     *)
 
 (* Tag calculation *)
-(* tag_in=10, offset_in=12, exclude=0xFF00 *)
+(* tag_in=10, offset_in=3, exclude=0xFF00 *)
 (* tag | offset *)
-(* 10  | 12     *)
-(* 0   | 11     *)
-(* 7   | 4      *)
-(* 0   | 3      *)
-(* 3   | 0      *)
+(* 10  | 3      *)
+(* 0   | 2      *)
+(* 2   | 0      *)
 
-(* After IRG, RGSR_EL1 TAG=0x3, SEED=0x3006 *)
+(* After IRG, RGSR_EL1 TAG=0x2, SEED=0x3006 *)
 
-forall (0:X1=x:t3 /\ 0:RGSR_EL1=0x300603)
+forall (0:X1=x:t2 /\ 0:RGSR_EL1=0x300602)
 
