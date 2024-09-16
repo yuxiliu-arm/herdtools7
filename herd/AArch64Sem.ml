@@ -3229,16 +3229,15 @@ module Make
         in
         (* AArch64.RandomTag *)
         let aarch64_random_tag seed =
-          let rec go (acc, seed) = function
-            | 0 -> (acc, seed)
+          let rec go (acc, cur, seed) = function
+            | 4 -> (acc, seed)
             | n ->
-              let acc = Int.shift_left acc 1 in
               let bit, seed = aarch64_next_random_tag_bit seed in
-              let acc = if bit = 1 then acc + 1 else acc in
-              go (acc, seed) (n-1)
+              let acc = if bit = 1 then acc + cur else acc in
+              go (acc, Int.shift_left cur 1, seed) (n + 1)
 
           in
-          go (0, seed) 4
+          go (0, 1, seed) 0
         in
         (* AArch64.ChooseNonExcludedTag *)
         let aarch64_choose_non_excluded_tag tag_in offset_in exclude =
