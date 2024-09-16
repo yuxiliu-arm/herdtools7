@@ -1,17 +1,18 @@
 ASL YL-02
 
-(* IRG *)
+(* IRG test, corresponding to herd/tests/instructions/AArch64.MTE/Y008.litmus *)
 
 {
-  0:X2 = x;
+  int x = 100;
+  0:X0 = x;
   0:X3 = 0;
 }
 
 // system reg setup
 constant GCR_EL1_RRND :: bits(1) = '0';
 constant GCR_EL1_Exclude :: bits(16) = '0000000000000000';
-var RGSR_EL1_SEED :: bits(16) = '0000000000000000';
-constant RGSR_EL1_TAG :: bits(4) = '0000';
+var RGSR_EL1_SEED :: bits(16) = '0000000000010100'; // 0x0014
+var RGSR_EL1_TAG :: bits(4) = '0000';
 
 func ChooseRandomNonExcludedTag(exclude :: bits(16)) => bits(4)
 begin
@@ -68,7 +69,7 @@ begin
   return operand;
 end
 
-func IRG(d :: integer, n :: integer, m :: integer)
+func IRG(d :: integer, n :: integer, m :: integer) => integer
 begin
   // constant bits(64) operand = if n == 31 then SP[] else X[n, 64];
   // constant operand :: bits(64) = read_register(n);
@@ -89,6 +90,7 @@ begin
     constant offset :: bits(4) = AArch64_RandomTag();
 
     rtag = AArch64_ChooseNonExcludedTag(start_tag, offset, exclude);
+    RGSR_EL1_TAG = rtag;
   end
 
   return UInt(rtag);
@@ -107,8 +109,10 @@ end
 
 func main() => integer
 begin
-  let tag = IRG(1, 2, 3);
+  let tag = IRG(1, 0, 3);
+  let final_seed = UInt(RGSR_EL1_SEED);
+  let final_tag = UInt(RGSR_EL1_TAG);
   return 0;
 end
 
-forall (0: main.0.tag = 0)
+forall (0:main.0.tag = 3 /\ 0:main.0.final_seed = 0x3001 /\ 0:main.0.final_tag = 3)
