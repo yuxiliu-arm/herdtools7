@@ -1,0 +1,10 @@
+Test Y014 Required
+States 1
+0:X1=x:t4; 0:RGSR_EL1=1245188;
+Ok
+Witnesses
+Positive: 1 Negative: 0
+Condition forall (0:X1=x:t4 /\ 0:RGSR_EL1=1245188)
+Observation Y014 Always 1 0
+Hash=85eeb6a1b26e2f1197afe4aec7b3f34c
+
