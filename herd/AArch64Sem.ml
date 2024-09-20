@@ -3330,15 +3330,14 @@ module Make
       let stzg = do_stzg Once
       and stz2g = do_stzg Twice
 
-      let irg (rd : AArch64Base.reg) rn rm ii =
+      let irg rd rn rm ii =
         let debug = false in
         let ( let>* ) = M.bind_control_set_data_input_first in
         let ( let>= ) = ( >>= ) in
         let ( and* ) = ( >>| ) in
         let reg_gcr_el1 = AArch64Base.(SysReg GCR_EL1) in
         let reg_rgsr_el1 = AArch64Base.(SysReg RGSR_EL1) in
-        let>= vn = read_reg_ord rn ii
-        and* vm = read_reg_ord rm ii
+        let>= vm = read_reg_ord rm ii
         and* gcr_el1 = read_reg_ord reg_gcr_el1 ii
         in
         let ffff = V.intToV 0xFFFF in
@@ -3432,6 +3431,7 @@ module Make
         in
         let set_tag tag =
           let tag = V.Val (Constant.Tag ("t" ^ string_of_int tag)) in
+          let>= vn = read_reg_ord rn ii in
           let>= v = M.op Op.SetTag vn tag in
           write_reg_dest rd v ii
         in
