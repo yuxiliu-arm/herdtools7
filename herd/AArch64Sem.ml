@@ -3332,12 +3332,9 @@ module Make
 
       let irg rd rn rm ii =
         let debug = false in
-        let ( let>* ) = M.bind_control_set_data_input_first in
-        let ( let>= ) = ( >>= ) in
-        let ( and* ) = ( >>| ) in
         let reg_gcr_el1 = AArch64Base.(SysReg GCR_EL1) in
         let reg_rgsr_el1 = AArch64Base.(SysReg RGSR_EL1) in
-        let>= vn = read_reg_ord rn ii
+        let<>= vn = read_reg_ord rn ii
         and* vm = read_reg_ord rm ii
         and* gcr_el1 = read_reg_ord reg_gcr_el1 ii
         in
@@ -3461,7 +3458,6 @@ module Make
         M.( >>:: )
           begin
             let tag = V.Val (Constant.Tag ("t" ^ string_of_int rtag)) in
-            let>= vn = read_reg_ord rn ii in
             let>= v = M.op Op.SetTag vn tag in
             let>= rdv = write_reg_dest rd v ii in
             M.unitT (rd, rdv)
