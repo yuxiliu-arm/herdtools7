@@ -3405,9 +3405,11 @@ module Make
             else go tag_in offset_in
         in
         let gen_rtag () =
-          let>= gcr_el1 = read_reg_ord reg_gcr_el1 ii
-          and* vm = read_reg_ord rm ii in
-          let>= exclude = M.op Op.And gcr_el1 ffff >>= M.op Op.Or vm in
+          let>= gcr_el1 = read_reg_ord reg_gcr_el1 ii in
+          let exclude () =
+            let<>= vm = read_reg_ord rm ii in
+            M.op Op.And gcr_el1 ffff >>= M.op Op.Or vm
+          in
           (* TODO:
             if AArch64.AllocationTagAccessIsEnabled(PSTATE.EL) then
               [...]
@@ -3415,11 +3417,12 @@ module Make
               rtag = '0000' *)
           do_choice "GCR_EL1.RRND"
             (M.bitT gcr_el1 (V.intToV 16))
-            (do_choice "(IsOnes(exclude))"
-               (is_ones_16 exclude)
-               (* (set_tag 0 >>= B.nextSetT rd) *)
-               (M.unitT (0, None))
-               (choose_random_non_excluded_tag exclude >>= fun tag -> M.unitT (tag, None)))
+            begin
+               do_choice "(IsOnes(exclude))"
+                (exclude () >>= is_ones_16)
+                (M.unitT (0, None))
+                (exclude () >>= choose_random_non_excluded_tag >>= fun tag -> M.unitT (tag, None))
+            end
             begin
               let>= rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in (* TODO: use [int64] *)
               (* NOTE: reads & writes to RGSR_EL1 appear in program order, see
@@ -3431,7 +3434,7 @@ module Make
               if debug then Format.eprintf "seed: 0x%x\n" seed;
               let (offset, seed) = aarch64_random_tag seed in
               if debug then Format.eprintf "offset: 0x%x, seed: 0x%x\n" offset seed;
-              let>= exclude = int_of_bits 16 exclude in
+              let>= exclude = exclude () >>= int_of_bits 16 in
               let rtag = aarch64_choose_non_excluded_tag start_tag offset exclude in
               M.unitT (rtag, Some (seed, rgsr_el1))
             end
