@@ -3334,14 +3334,17 @@ module Make
         let debug = false in
         let reg_gcr_el1 = AArch64Base.(SysReg GCR_EL1) in
         let reg_rgsr_el1 = AArch64Base.(SysReg RGSR_EL1) in
-        let<>= vn = read_reg_ord rn ii
-        and* vm = read_reg_ord rm ii
-        and* gcr_el1 = read_reg_ord reg_gcr_el1 ii
-        in
         let ffff = V.intToV 0xFFFF in
-        let>= exclude =
-          M.op Op.And gcr_el1 ffff >>= M.op Op.Or vm
+        (* if then else *)
+        let do_choice cond_name mcond m1 m2 =
+          let>= cond = mcond in
+          let>* () =
+            let text = Printf.sprintf "%s(%s)" cond_name (V.pp_v cond) in
+            commit_pred_txt (Some text) ii
+          in
+          M.choiceT cond m1 m2
         in
+        let is_ones_16 bits = M.op Op.And bits ffff >>= M.op Op.Eq ffff in
         let choose_random_non_excluded_tag exclude =
           let do_irg n =
             let>= () = M.isBitUnsetT exclude (V.intToV n) in
@@ -3401,32 +3404,15 @@ module Make
             then find_next_non_excluded tag_in
             else go tag_in offset_in
         in
-        let set_rgsr_el1 ~seed ~tag rgsr_el1 =
-          let>= new_rgsr_el1 =
-            M.op Op.And rgsr_el1 (V.int64ToV 0xFFFF_FFFF_FF00_00F0L) >>=
-              M.op Op.Or (V.intToV tag) >>=
-                M.op Op.Or (V.intToV (Int.shift_left seed 8))
-          in
-          write_reg_dest reg_rgsr_el1 new_rgsr_el1 ii
-        in
-
-        let is_ones_16 bits = M.op Op.And bits ffff >>= M.op Op.Eq ffff in
-        (* TODO:
-          if AArch64.AllocationTagAccessIsEnabled(PSTATE.EL) then
-            [...]
-          else
-            rtag = '0000'
-         *)
-        (* if then else *)
-        let do_choice cond_name mcond m1 m2 =
-          let>= cond = mcond in
-          let>* () =
-            let text = Printf.sprintf "%s(%s)" cond_name (V.pp_v cond) in
-            commit_pred_txt (Some text) ii
-          in
-          M.choiceT cond m1 m2
-        in
-        let>= (rtag, seed_rgsr_el1_opt) =
+        let gen_rtag () =
+          let>= gcr_el1 = read_reg_ord reg_gcr_el1 ii
+          and* vm = read_reg_ord rm ii in
+          let>= exclude = M.op Op.And gcr_el1 ffff >>= M.op Op.Or vm in
+          (* TODO:
+            if AArch64.AllocationTagAccessIsEnabled(PSTATE.EL) then
+              [...]
+            else
+              rtag = '0000' *)
           do_choice "GCR_EL1.RRND"
             (M.bitT gcr_el1 (V.intToV 16))
             (do_choice "(IsOnes(exclude))"
@@ -3448,30 +3434,35 @@ module Make
               let>= exclude = int_of_bits 16 exclude in
               let rtag = aarch64_choose_non_excluded_tag start_tag offset exclude in
               M.unitT (rtag, Some (seed, rgsr_el1))
-              (* let>= rdv = set_tag rtag *)
-              (* in *)
-              (* let bds = [(rd, rdv); (reg_rgsr_el1, new_rgsr_el1)] in *)
-              (* M.unitT (B.Next bds) *)
             end
-      in
-      let>= bds =
-        M.( >>:: )
-          begin
-            let tag = V.Val (Constant.Tag ("t" ^ string_of_int rtag)) in
-            let>= v = M.op Op.SetTag vn tag in
-            let>= rdv = write_reg_dest rd v ii in
-            M.unitT (rd, rdv)
-          end
-          begin
-            match seed_rgsr_el1_opt with
-            | None -> M.unitT []
-            | Some (seed, rgsr_el1) ->
-              let>= new_rgsr_el1 = set_rgsr_el1 ~seed ~tag:rtag rgsr_el1 in
-              M.unitT [(reg_rgsr_el1, new_rgsr_el1)]
-          end
-      in
-      M.unitT (B.Next bds)
-
+        in
+        let set_rgsr_el1 ~seed ~tag rgsr_el1 =
+          let>= new_rgsr_el1 =
+            M.op Op.And rgsr_el1 (V.int64ToV 0xFFFF_FFFF_FF00_00F0L) >>=
+              M.op Op.Or (V.intToV tag) >>=
+                M.op Op.Or (V.intToV (Int.shift_left seed 8))
+          in
+          write_reg_dest reg_rgsr_el1 new_rgsr_el1 ii
+        in
+        let>= bds =
+          let<>= (rtag, seed_rgsr_el1_opt) = gen_rtag () in
+          M.( >>:: )
+            begin
+              let>= vn = read_reg_ord rn ii in
+              let tag = V.Val (Constant.Tag ("t" ^ string_of_int rtag)) in
+              let>= v = M.op Op.SetTag vn tag in
+              let>= rdv = write_reg_dest rd v ii in
+              M.unitT (rd, rdv)
+            end
+            begin
+              match seed_rgsr_el1_opt with
+              | None -> M.unitT []
+              | Some (seed, rgsr_el1) ->
+                let>= new_rgsr_el1 = set_rgsr_el1 ~seed ~tag:rtag rgsr_el1 in
+                M.unitT [(reg_rgsr_el1, new_rgsr_el1)]
+            end
+        in
+        M.unitT (B.Next bds)
 
 (*********************)
 (* Instruction fetch *)
