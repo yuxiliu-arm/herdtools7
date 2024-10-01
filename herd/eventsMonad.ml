@@ -293,6 +293,8 @@ Monad type:
 
     let asl_ctrl s f = data_comp E.bind_ctrl_sequence_data_po s f
 
+    let bind_ctrl_to_output s f = data_comp E.ctrl_to_output s f
+
     let bind_data_to_minimals s f =  data_comp E.data_to_minimals s f
 
     let bind_data_to_output s f = data_comp E.data_to_output s f
