@@ -115,6 +115,12 @@ module type S =
     (* Similar as [bind_ctrl_seq_data] but sequences partial_po *)
     val asl_ctrl : 'a t -> ('a -> 'b t) -> 'b t
 
+    val bind_ctrl_to_output : 'a t -> ('a -> 'b t) -> 'b t
+    (** [bind_ctrl_to_output p1 p2] returns a composition of the event
+        structures of [s1] and [s2] where there is iico_causality_ctrl
+        relation from the output events of [s1] to the output events
+        of [s2] *)
+
     (* Hybrid composition m1 m2 m3, m1 -ctrl+data-> m3 and m2 -data-> m3.
        ctrl+data -> ctrl from maximal commit evts + data from
        monad output *)
