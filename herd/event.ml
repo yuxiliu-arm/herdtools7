@@ -1588,8 +1588,7 @@ module Make  (C:Config) (AI:Arch_herd.S) (Act:Action.S with module A = AI) :
         control_comp
           get_ctrl_output
           maximals
-          (* sequence_control_output es1 es2 in *)
-          sequence_data_ctrl_output es1 es2 in
+          sequence_control_output es1 es2 in
       let r =
         { r with
           input = union_input_seq es1 es2 ;
