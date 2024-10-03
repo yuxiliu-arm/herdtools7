@@ -69,6 +69,43 @@ module Make
 
     let tr_id s = s
 
+    (* try to descend and evaluate until reaches [FunApp] or a primitive which
+       we don't have information *)
+    type extremity =
+      | Set of exp
+      | Domain of exp
+      | Range of exp
+      | FunApp of exp
+
+    type ty =
+      | Set of exp
+      | Rel of exp
+      | KnownRel of exp * exp
+
+    type id_map = exp StringMap.t
+
+    let id_map : id_map = StringMap.empty
+
+    let rec populate_id_map_ins (id_map : id_map) (ins : ins) : id_map =
+      match ins with
+      | Let (_, bds) 
+      | Rec (_, bds, _ (* ignoring app_test, not sure what it does *) ) ->
+          List.fold_left populate_id_map_binding id_map bds
+      | InsMatch (_, _, _, Some inss) ->
+          List.fold_left populate_id_map_ins id_map inss
+      | InsMatch (_, _, _, None)
+      | Test _ | UnShow _ | Show _ | ShowAs _ 
+      | Include _  (* should already be resolved *)
+      | Procedure _ | Call _ | Enum _ | Forall _ | Debug _ | Events _ ->
+          id_map
+      | WithFrom (_, v, e) ->
+          StringMap.add v e id_map
+      | IfVariant (_, _, inss1, inss2) ->
+          populate_id_map (populate_id_map id_map inss1) inss2
+    and populate_id_map id_map inss = List.fold_left populate_id_map_ins id_map inss
+    and populate_id_map_binding = failwith ""
+
+
     let get_id_type _id  = failwith "TODO"
 
     let nodefs = ref StringSet.empty
