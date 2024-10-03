@@ -4,7 +4,7 @@
 (* Jade Alglave, University College London, UK.                             *)
 (* Luc Maranget, INRIA Paris-Rocquencourt, France.                          *)
 (*                                                                          *)
-(* Copyright 2023-present Institut National de Recherche en Informatique et *)
+(* Copyright 2024-present Institut National de Recherche en Informatique et *)
 (* en Automatique and the authors. All rights reserved.                     *)
 (*                                                                          *)
 (* This software is governed by the CeCILL-B license under French law and   *)
@@ -14,14 +14,15 @@
 (* "http://www.cecill.info". We also give a copy in LICENSE.txt.            *)
 (****************************************************************************)
 
-(** Miaou, this cat talks! *)
+(** Adapted from miaou *)
 
 open Printf
 
 let prog =
   if Array.length Sys.argv > 0 then
     Filename.basename Sys.argv.(0)
-  else "miaou7"
+  else "cat2table7"
+  (* TODO: combine with miaou? *)
 
 module Make
     (O:sig
@@ -34,7 +35,6 @@ module Make
 (* Definitons *)
          val names : StringSet.t
          val testmode : bool
-         val texfile : string option
     end) =
   struct
 
@@ -67,76 +67,17 @@ module Make
 
     open AST
 
-    let toalpha s =
-      let buff = Buffer.create 10 in
-      for k=0 to String.length s-1 do
-        match s.[k] with
-        | 'a'..'z'|'A'..'Z' as c ->
-           Buffer.add_char buff c
-        | _ -> ()
-      done ;
-      Buffer.contents buff
+    let tr_id s = s
 
-    let vocabulary =
-      StringMap.empty
-      |> StringMap.add "dmb.full" "DMBFULL"
-      |> StringMap.add "dmb.st" "DMBST"
-      |> StringMap.add "dmb.ld" "DMBLD"
-      |> StringMap.add "dsb.full" "DSBFULL"
-      |> StringMap.add "dsb.st" "DSBST"
-      |> StringMap.add "dsb.ld" "DSBLD"
-      |> StringMap.add "iico_order" "iicoorder"
-      |> StringMap.add "iico_data" "iicodata"
-      |> StringMap.add "iico_ctrl" "iicoctrl"
-      |> StringMap.add "iico_control" "iicoctrl"
-      |> StringMap.add "hw-reqs" "hwreqs"
-      |> StringMap.add "sca-class" "sca"
-      |> StringMap.add "Instr-read-ordered-before" "Instrreadob"
-      |> StringMap.add "L" "REL"
-      |> StringMap.add "id" "sameEffect"
-    let defs =
-      match O.texfile with
-      | None -> None
-      | Some fname ->
-         Some (LexMiaou.csnames (libfind fname))
-
-    let tr_id s =
-      try StringMap.find s vocabulary
-      with Not_found -> toalpha s
-
-    let get_id_type  =
-      match defs with
-      | None -> fun _ -> None
-      | Some defs ->
-         fun name ->
-         try StringMap.find (tr_id name) defs
-         with Not_found -> None
+    let get_id_type _id  = failwith "TODO"
 
     let nodefs = ref StringSet.empty
 
-    let get_nodefs () =
-      let d = !nodefs in
-      nodefs := StringSet.empty ;
-      d
-
-    let check_nodefs =
-      match defs with
-      | None -> fun _ name -> name
-      | Some defs ->
-         fun loc name ->
-         if not (StringMap.mem name defs) then begin
-           if O.verbose > 1 then
-             eprintf "%a: found undefined %s\n"
-               TxtLoc.pp loc name ;
-           nodefs := StringSet.add name !nodefs
-         end ;
-         name
-
-    let pp_id loc s =
+    let pp_id _loc s =
       let name = tr_id s in
-      check_nodefs loc name
+      name
 
-    let id_name id = tr_id id |> sprintf "\\%sname"
+    let id_name id = tr_id id
 
     let pp_transitive = sprintf "transitive{%s}"
 
@@ -752,13 +693,6 @@ module Make
 
     let tr_ast name =
       (if O.testmode then tst_ast else tr_ast) name ;
-      let defs = get_nodefs () in
-      if not (StringSet.is_empty defs) then begin
-        eprintf "Warning: the following commands are undefined:\n" ;
-        StringSet.iter
-          (fun name -> eprintf "\\%s\n" name)
-          defs
-      end
 
   end
 
@@ -771,7 +705,6 @@ let libdir = ref (Filename.concat Version.libdir "herd")
 let includes = ref []
 let names = ref StringSet.empty
 let testmode = ref false
-let texfile = ref None
 let expand = ref true
 let flatten = ref true
 
@@ -795,7 +728,6 @@ let options =
     ArgUtils.parse_bool "-test" testmode "translate as many names as possible";
     ArgUtils.parse_bool "-expand" expand "expand include statements";
     ArgUtils.parse_bool "-flatten" flatten "flatten associative operators";
-    ArgUtils.parse_string_opt "-tex" texfile "file of LaTeX definitions";
   ]
 
 (* Parse command line *)
@@ -823,7 +755,6 @@ let () =
         let expand = !expand
         let flatten = !flatten
         let testmode = !testmode
-        let texfile = !texfile
       end) in
   let zyva name =
     try Zyva.tr_ast name
