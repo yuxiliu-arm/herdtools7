@@ -88,7 +88,7 @@ module Make
 
     let rec populate_id_map_ins (id_map : id_map) (ins : ins) : id_map =
       match ins with
-      | Let (_, bds) 
+      | Let (_, bds)
       | Rec (_, bds, _ (* ignoring app_test, not sure what it does *) ) ->
           List.fold_left populate_id_map_binding id_map bds
       | InsMatch (_, _, _, Some inss) ->
