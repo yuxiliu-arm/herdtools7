@@ -51,8 +51,8 @@ fi
 # -show prop -showevents all -hexa true \
 
 _build/install/default/bin/herd7 -set-libdir ./herd/libdir \
-  -show prop -hexa true \
-  -dumpes true -o out \
+  -show all -hexa true \
+   -o out \
   "${VARIANT_OPT[@]}" \
   "$@"
 
