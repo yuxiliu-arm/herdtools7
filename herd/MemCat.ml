@@ -18,6 +18,7 @@
 module type Config = sig
   val model : Model.t
   val bell_model_info : (string * BellModel.info) option
+  val dumptableall : Table.Config.fmt option
   include Model.Config
 end
 

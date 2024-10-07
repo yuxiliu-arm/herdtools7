@@ -101,6 +101,7 @@ module Top (TopConf:RunTest.Config) = struct
         let variant = variant_patched_with_cache_type
         let dirty = dirty
         let statelessrc11 = Conf.statelessrc11
+        let dumptableall = Conf.dumptableall
       end in
       let module ArchConfig = SemExtra.ConfigToArchConfig(Conf) in
       match arch with
