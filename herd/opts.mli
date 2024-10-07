@@ -74,6 +74,7 @@ val suffix : string ref
 val dumpes : bool ref
 val dumplem : bool ref
 val dumptex : bool ref
+val dumptableall : Table.Config.fmt option ref
 val maxphantom : int option ref
 val statelessrc11 : bool ref
 val dumpallfaults : bool ref

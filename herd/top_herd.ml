@@ -35,6 +35,7 @@ module type CommonConfig = sig
   val statelessrc11 : bool
   val skipchecks : StringSet.t
   val dumpallfaults : bool
+  val dumptableall : Table.Config.fmt option
 end
 
 module type Config = sig
@@ -363,7 +364,7 @@ module Make(O:Config)(M:XXXMem.S) =
          Warn.warn_always "%s, legal outcomes may be missing" msg ;
          c
       | Some (Assign _)|None ->
-         model_kont 
+         model_kont
            ochan test do_restrict cstr
            conc (st,flts) (set_pp,vbpp) flags c
 

@@ -78,6 +78,7 @@ let dumpes = ref false
 let outputdir = ref PrettyConf.NoOutputdir
 let dumplem = ref false
 let dumptex = ref false
+let dumptableall = ref None
 let maxphantom= ref None
 let statelessrc11 = ref false
 let dumpallfaults = ref false

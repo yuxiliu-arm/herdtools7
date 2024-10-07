@@ -1141,6 +1141,7 @@ module Make (TopConf : AArch64Sig.Config) (V : Value.AArch64ASL) :
         let through = Model.ThroughAll
         let cycles = StringSet.empty
         let dirty = TopConf.dirty
+        let dumptableall = TopConf.C.dumptableall
       end in
       let module ASL64M = MemCat.Make (MemConfig) (ASLS) in
       ASL64M.check_event_structure

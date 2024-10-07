@@ -89,6 +89,9 @@ let options = [
   ("-suffix", Arg.String (fun s -> suffix := s),
    "<suf> add <suf> at the end of the base of generated files") ;
   parse_bool "-dumpes" Opts.dumpes "dump event structures";
+  ("-dumptableall",
+    Arg.String (fun s -> dumptableall := Some (Table.Config.parse_fmt s)),
+   "<fmt> dump relations and extremities as a table in <fmt>");
   begin let module ParseView = ParseTag.Make(View) in
   ParseView.parse_opt "-view" PP.view
     "fork specified viewer to show output graphs" end ;
@@ -469,6 +472,7 @@ let () =
     let outputdir = !outputdir
     let suffix = !suffix
     let dumpes = !dumpes
+    let dumptableall = !dumptableall
 
     module PC = struct
       let debug = debug.Debug_herd.pretty
