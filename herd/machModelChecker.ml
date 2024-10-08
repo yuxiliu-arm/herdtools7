@@ -22,6 +22,7 @@ module type Config = sig
   val bell_model_info : (string * BellModel.info) option
 (* Include events from the same instance in po, essential for the LKMM *)
   val wide_po : bool
+  val dumptableall : Table.Config.fmt option
   include Model.Config
 end
 
@@ -314,6 +315,12 @@ module Make
         (*Printf.eprintf "vb_pp = {%s}\n%!" (String.concat "," (List.map fst (Lazy.force vb_pp)));*)
         run ks m vb_pp
           (fun st res ->
+            let () =
+              match O.dumptableall with
+              | Some fmt ->
+                  failwith ""
+              | None -> ()
+            in
             if
               not O.strictskip || StringSet.equal st.I.out_skipped O.skipchecks
             then
