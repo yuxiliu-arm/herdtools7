@@ -16,6 +16,8 @@
 
 (** Adapted from miaou *)
 
+open Printf
+
 let prog =
   if Array.length Sys.argv > 0 then
     Filename.basename Sys.argv.(0)
@@ -35,6 +37,7 @@ module Make
          val testmode : bool
     end) =
   struct
+    let _ = O.(flatten, names, testmode, expand)
 
     (***********)
     (* Parsing *)
@@ -85,17 +88,18 @@ module Make
 
     let empty : id_map = StringMap.empty
 
-    let pp_exp fmt (exp : exp) =
-      let open Format in
+
+
+    let rec pp_exp out_channel (exp : exp) =
       (* let bracket fmt pp v = Format.fprintf fmt "(%a)" pp v in *)
       match exp with
-      | Konst (_, Empty _) -> pp_print_string fmt "{}"
-      | Konst (_, Universe _) -> pp_print_string fmt "Universe"
-      | _ -> pp_print_string fmt "TODO"
-      (* | Tag (_, tag) -> "Tag " ^ tag *)
-      (* | Var (_, var) -> "Var " ^ var *)
-      (* | Op1 (_, op1, exp) -> "(" ^ pp_exp out_channel exp ^ ")" ^ pp_op1 op1 *)
-      (* | Op (_, op2, exps) -> "" *)
+      | Konst (_, Empty _) -> fprintf out_channel "{}"
+      | Konst (_, Universe _) -> fprintf out_channel "Universe"
+      | Tag (_, tag) -> fprintf out_channel "Tag %s" tag
+      | Var (_, var) -> fprintf out_channel "Var %s" var
+      | Op1 (_, op1, exp) -> pp_op1 out_channel op1 exp
+      | Op (_, op2, exps) -> pp_op2 out_channel op2 exps
+      | _ -> fprintf out_channel "TODO"
       (* | App of  TxtLoc.t * exp * exp *)
       (* | Bind  of  TxtLoc.t * binding list * exp *)
       (* | BindRec  of  TxtLoc.t * binding list * exp *)
@@ -106,21 +110,40 @@ module Make
       (* | MatchSet of TxtLoc.t * exp * exp * set_clause *)
       (* | Try of TxtLoc.t * exp * exp *)
       (* | If of TxtLoc.t * cond * exp * exp *)
+    and pp_op1 out_channel op1 exp =
+      match op1 with
+      | Plus -> fprintf out_channel "(%a)+" pp_exp exp
+      | Star -> fprintf out_channel "(%a)*" pp_exp exp
+      | Opt -> fprintf out_channel "(%a)?" pp_exp exp
+      | Comp -> fprintf out_channel "~(%a)" pp_exp exp
+      | Inv -> fprintf out_channel "Inv(%a)" pp_exp exp
+      | ToId -> fprintf out_channel "ToId(%a)" pp_exp exp
+    and pp_op2 out_channel op2 exps =
+      let str_of_op2 = function
+        | Union -> "Union"
+        | Inter -> "Inter"
+        | Diff -> "Diff"
+        | Seq -> "Seq"
+        | Cartesian -> "Cartesian"
+        | Add -> "Add"
+        | Tuple -> "Tuple"
+      in
+      let rec pp_list pp out_channel = function
+        | [] -> fprintf out_channel ""
+        | [x] -> fprintf out_channel "%a" pp x
+        | x :: xs -> fprintf out_channel "%a, " pp x; pp_list pp out_channel xs
+      in
+      fprintf out_channel "%s(%a)" (str_of_op2 op2) (pp_list pp_exp) exps
 
-    let pp_ty fmt =
-      let open Format in
+    let pp_ty out_channel =
       function
-      | Set exp -> fprintf fmt "Set(%a)" pp_exp exp
-      | Rln exp -> fprintf fmt "Rln(%a)" pp_exp exp
-      | KnownRln (e1, e2) -> fprintf fmt "KnownRln(%a, %a)" pp_exp e1 pp_exp e2
-      | Opaque exp -> fprintf fmt "Opaque(%a)" pp_exp exp
+      | Set exp -> fprintf out_channel "Set(%a)" pp_exp exp
+      | Rln exp -> fprintf out_channel "Rln(%a)" pp_exp exp
+      | KnownRln (e1, e2) -> fprintf out_channel "KnownRln(%a, %a)" pp_exp e1 pp_exp e2
+      | Opaque exp -> fprintf out_channel "Opaque(%a)" pp_exp exp
 
     let pp_id_map out_channel = StringMap.pp out_channel (fun out_channel id exp ->
-      let pp_ty out_channel =
-        let fmt = Format.formatter_of_out_channel out_channel in
-        pp_ty fmt
-      in
-      Printf.fprintf out_channel "%s -> %a" id pp_ty exp)
+      fprintf out_channel "%s -> %a\n" id pp_ty exp)
 
     let rec populate_id_map_ins (id_map : id_map) (ins : ins) : id_map =
       match ins with
@@ -188,8 +211,6 @@ let names = ref StringSet.empty
 let testmode = ref false
 let expand = ref true
 let flatten = ref true
-
-open Printf
 
 let options =
   [
