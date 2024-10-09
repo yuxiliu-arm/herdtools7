@@ -116,17 +116,17 @@ module Make
       match exp with
       | Konst (_, Empty _) -> fprintf k "{}"
       | Konst (_, Universe _) -> fprintf k "Universe"
-      | Tag (_, tag) -> fprintf k "Tag %s" tag
-      | Var (_, var) -> fprintf k "Var %s" var
+      | Tag (_, tag) -> fprintf k "Tag(%s)" tag
+      | Var (_, var) -> fprintf k "$%s" var
       | Op1 (_, op1, exp) -> pp_op1 k op1 exp
       | Op (_, op2, exps) -> pp_op2 k op2 exps
-      | App (_, exp1, exp2) -> fprintf k "%a(%a)" pp_exp exp1 pp_exp exp2
+      | App (_, exp1, exp2) -> fprintf k "[%a](%a)" pp_exp exp1 pp_exp exp2
       | Bind (_, bds, exp) ->
           fprintf k "Bind(%a, %a)" (pp_list pp_binding) bds pp_exp exp
       | BindRec (_, bds, exp) ->
           fprintf k "BindRec(%a, %a)" (pp_list pp_binding) bds pp_exp exp
       | Fun (_, pat, exp, name, _freevars) ->
-          fprintf k "%s(%a) -> %a" name pp_pat pat pp_exp exp
+          fprintf k "[%s](%a) -> %a" name pp_pat pat pp_exp exp
       | ExplicitSet (_, exps) ->
           fprintf k "ExplicitSet(%a)" (pp_list pp_exp) exps
       | Match (_, exp, cls, default (* ? *)) ->
