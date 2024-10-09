@@ -88,37 +88,65 @@ module Make
 
     let empty : id_map = StringMap.empty
 
+    let ( <|> ) e1 e2 =
+      match (e1, e2) with
+      | Some e1, _ -> Some e1
+      | None, e2 -> e2
 
+    let first_last xs =
+      let rec go first = function
+        | [] -> (first, first)
+        | [last] -> (first, last)
+        | _ :: xs -> go first xs
+      in
+      match xs with
+      | [] -> None
+      | x :: xs -> Some (go x xs)
 
-    let rec pp_exp out_channel (exp : exp) =
-      (* let bracket fmt pp v = Format.fprintf fmt "(%a)" pp v in *)
+    let pp_opt pp k = function
+      | None -> fprintf k "none"
+      | Some x -> pp k x
+
+    let rec pp_list pp k = function
+      | [] -> fprintf k ""
+      | [x] -> pp k x
+      | x :: xs -> fprintf k "%a, " pp x; pp_list pp k xs
+
+    let rec pp_exp k (exp : exp) =
       match exp with
-      | Konst (_, Empty _) -> fprintf out_channel "{}"
-      | Konst (_, Universe _) -> fprintf out_channel "Universe"
-      | Tag (_, tag) -> fprintf out_channel "Tag %s" tag
-      | Var (_, var) -> fprintf out_channel "Var %s" var
-      | Op1 (_, op1, exp) -> pp_op1 out_channel op1 exp
-      | Op (_, op2, exps) -> pp_op2 out_channel op2 exps
-      | _ -> fprintf out_channel "TODO"
-      (* | App of  TxtLoc.t * exp * exp *)
-      (* | Bind  of  TxtLoc.t * binding list * exp *)
-      (* | BindRec  of  TxtLoc.t * binding list * exp *)
-      (* | Fun of  TxtLoc.t * pat * exp * *)
-      (*       var (* name *) * varset (* free vars *) *)
-      (* | ExplicitSet of TxtLoc.t * exp list *)
-      (* | Match of TxtLoc.t * exp * clause list * exp option *)
-      (* | MatchSet of TxtLoc.t * exp * exp * set_clause *)
-      (* | Try of TxtLoc.t * exp * exp *)
-      (* | If of TxtLoc.t * cond * exp * exp *)
-    and pp_op1 out_channel op1 exp =
+      | Konst (_, Empty _) -> fprintf k "{}"
+      | Konst (_, Universe _) -> fprintf k "Universe"
+      | Tag (_, tag) -> fprintf k "Tag %s" tag
+      | Var (_, var) -> fprintf k "Var %s" var
+      | Op1 (_, op1, exp) -> pp_op1 k op1 exp
+      | Op (_, op2, exps) -> pp_op2 k op2 exps
+      | App (_, exp1, exp2) -> fprintf k "%a(%a)" pp_exp exp1 pp_exp exp2
+      | Bind (_, bds, exp) ->
+          fprintf k "Bind(%a, %a)" (pp_list pp_binding) bds pp_exp exp
+      | BindRec (_, bds, exp) ->
+          fprintf k "BindRec(%a, %a)" (pp_list pp_binding) bds pp_exp exp
+      | Fun (_, pat, exp, name, _freevars) ->
+          fprintf k "%s(%a) -> %a" name pp_pat pat pp_exp exp
+      | ExplicitSet (_, exps) ->
+          fprintf k "ExplicitSet(%a)" (pp_list pp_exp) exps
+      | Match (_, exp, cls, default (* ? *)) ->
+          fprintf k "Match(%a, %a, %a)"
+            pp_exp exp
+            (pp_list pp_clause) cls
+            (pp_opt pp_exp) default
+      | MatchSet _ -> fprintf k "MatchSet(TODO)"
+      | Try (_, exp1, exp2) -> fprintf k "Try(%a, %a)" pp_exp exp1 pp_exp exp2
+      | If (_, cond, exp1, exp2) ->
+          fprintf k "Ite(%a, %a, %a)" pp_cond cond pp_exp exp1 pp_exp exp2
+    and pp_op1 k op1 exp =
       match op1 with
-      | Plus -> fprintf out_channel "(%a)+" pp_exp exp
-      | Star -> fprintf out_channel "(%a)*" pp_exp exp
-      | Opt -> fprintf out_channel "(%a)?" pp_exp exp
-      | Comp -> fprintf out_channel "~(%a)" pp_exp exp
-      | Inv -> fprintf out_channel "Inv(%a)" pp_exp exp
-      | ToId -> fprintf out_channel "ToId(%a)" pp_exp exp
-    and pp_op2 out_channel op2 exps =
+      | Plus -> fprintf k "(%a)+" pp_exp exp
+      | Star -> fprintf k "(%a)*" pp_exp exp
+      | Opt -> fprintf k "(%a)?" pp_exp exp
+      | Comp -> fprintf k "~(%a)" pp_exp exp
+      | Inv -> fprintf k "Inv(%a)" pp_exp exp
+      | ToId -> fprintf k "ToId(%a)" pp_exp exp
+    and pp_op2 k op2 exps =
       let str_of_op2 = function
         | Union -> "Union"
         | Inter -> "Inter"
@@ -128,22 +156,31 @@ module Make
         | Add -> "Add"
         | Tuple -> "Tuple"
       in
-      let rec pp_list pp out_channel = function
-        | [] -> fprintf out_channel ""
-        | [x] -> fprintf out_channel "%a" pp x
-        | x :: xs -> fprintf out_channel "%a, " pp x; pp_list pp out_channel xs
-      in
-      fprintf out_channel "%s(%a)" (str_of_op2 op2) (pp_list pp_exp) exps
+      fprintf k "%s(%a)" (str_of_op2 op2) (pp_list pp_exp) exps
+    and pp_pat k = function
+      | Pvar pat0 -> pp_pat0 k pat0
+      | Ptuple pat0s -> fprintf k "(%a)" (pp_list pp_pat0) pat0s
+    and pp_pat0 k = function
+      | None -> fprintf k "-"
+      | Some var -> fprintf k "%s" var
+    and pp_binding k (_, pat, exp) =
+      fprintf k "Bind(%a, %a)" pp_pat pat pp_exp exp
+    and pp_clause k (p, exp) = fprintf k "%s -> %a" p pp_exp exp
+    and pp_cond k = function
+      | Eq (exp1, exp2) -> fprintf k "%a = %a" pp_exp exp1 pp_exp exp2
+      | Subset (exp1, exp2) -> fprintf k "Subset(%a, %a)" pp_exp exp1 pp_exp exp2
+      | In (exp1, exp2) -> fprintf k "In(%a, %a)" pp_exp exp1 pp_exp exp2
+      | VariantCond _ -> fprintf k "VariantCond(TODO)"
 
-    let pp_ty out_channel =
+    let pp_ty k =
       function
-      | Set exp -> fprintf out_channel "Set(%a)" pp_exp exp
-      | Rln exp -> fprintf out_channel "Rln(%a)" pp_exp exp
-      | KnownRln (e1, e2) -> fprintf out_channel "KnownRln(%a, %a)" pp_exp e1 pp_exp e2
-      | Opaque exp -> fprintf out_channel "Opaque(%a)" pp_exp exp
+      | Set exp -> fprintf k "Set(%a)" pp_exp exp
+      | Rln exp -> fprintf k "Rln(%a)" pp_exp exp
+      | KnownRln (e1, e2) -> fprintf k "KnownRln(%a, %a)" pp_exp e1 pp_exp e2
+      | Opaque exp -> fprintf k "Opaque(%a)" pp_exp exp
 
-    let pp_id_map out_channel = StringMap.pp out_channel (fun out_channel id exp ->
-      fprintf out_channel "%s -> %a\n" id pp_ty exp)
+    let pp_id_map k = StringMap.pp k (fun k id exp ->
+      fprintf k "%s -> %a\n" id pp_ty exp)
 
     let rec populate_id_map_ins (id_map : id_map) (ins : ins) : id_map =
       match ins with
@@ -172,15 +209,15 @@ module Make
           | Some ty -> StringMap.add v ty id_map
           | None -> id_map
     and ty_of_exp id_map exp =
-      let ( <|> ) e1 e2 =
-        match (e1, e2) with
-        | Some e1, _ -> Some e1
-        | None, e2 -> e2
-      in
       match exp with
       | Tag _ -> None
       | Var (_, v) -> StringMap.find_opt v id_map (* TODO: order *)
       | Op1 (_, _, _) -> Some (Opaque exp)
+      | Op (_, Seq, exps) ->
+          let first_last = first_last exps in
+          (match first_last with
+          | None -> failwith "Seq with empty list"
+          | Some (first, last) -> Some (KnownRln (first, last)))
       | Op (_, _, _) -> Some (Opaque exp)
       | App (_, _, _) -> Some (Opaque exp)
       | Bind (_, _, _) -> failwith "TODO"
