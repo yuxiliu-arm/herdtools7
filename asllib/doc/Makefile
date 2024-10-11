@@ -54,18 +54,18 @@ ASL%Lines.tex: ../%.ml
 
 ifdef CODE
 ifcode.tex: force
-	@echo "\\\\newif\\ifcode\\\\codetrue" >$@
+	@echo "\\newif\\ifcode\\codetrue" >$@
 else
 ifcode.tex: force
-	@echo "\\\\newif\\ifcode\\\\codefalse" >$@
+	@echo "\\newif\\ifcode\\codefalse" >$@
 endif
 
 ifdef SHOW_EMPTY
 ifempty.tex: force
-	@echo "\\\\newif\\ifempty\\\\emptytrue" >$@
+	@echo "\\newif\\ifempty\\emptytrue" >$@
 else
 ifempty.tex: force
-	@echo "\\\\newif\\ifempty\\\\emptyfalse" >$@
+	@echo "\\newif\\ifempty\\emptyfalse" >$@
 endif
 
 clean:
