@@ -56,7 +56,7 @@ coupled with the derivation
 \begin{flalign*}
 \Nbinop \derives\ & \Tand \;|\; \Tband \;|\; \Tbor \;|\; \Tbeq \;|\; \Tdiv \;|\; \Tdivrm \;|\; \Txor \;|\; \Teqop \;|\; \Tneq &\\
                       |\ & \Tgt \;|\; \Tgeq \;|\; \Timpl \;|\; \Tlt \;|\; \Tleq \;|\; \Tplus \;|\; \Tminus \;|\; \Tmod \;|\; \Tmul &\\
-                      |\ & \Tor \;|\; \Trdiv \;|\; \Tshl \;|\; \Tshr \;|\; \Tpow \;|\; \Tconcat
+                      |\ & \Tor \;|\; \Trdiv \;|\; \Tshl \;|\; \Tshr \;|\; \Tpow \;|\; \Tcoloncolon \;|\; \Tconcat
 \end{flalign*}
 
 A grammar containing these two derivations results in shift-reduce conflicts.
@@ -74,7 +74,7 @@ By defining the derivations of $\Nbinop$ as inlined, we achieve the same effect 
 \begin{flalign*}
 \Nbinop \derivesinline\ & \Tand \;|\; \Tband \;|\; \Tbor \;|\; \Tbeq \;|\; \Tdiv \;|\; \Tdivrm \;|\; \Txor \;|\; \Teqop \;|\; \Tneq &\\
                       |\ & \Tgt \;|\; \Tgeq \;|\; \Timpl \;|\; \Tlt \;|\; \Tleq \;|\; \Tplus \;|\; \Tminus \;|\; \Tmod \;|\; \Tmul &\\
-                      |\ & \Tor \;|\; \Trdiv \;|\; \Tshl \;|\; \Tshr \;|\; \Tpow \;|\; \Tconcat
+                      |\ & \Tor \;|\; \Trdiv \;|\; \Tshl \;|\; \Tshr \;|\; \Tpow \;|\; \Tcoloncolon  \;|\; \Tconcat
 \end{flalign*}
 
 Barring mutually-recursive derivations involving inlined derivations, it is possible to expand
@@ -401,7 +401,7 @@ For example, instead of $\Tidentifier(\id)$, we simply write $\Tidentifier$.
 \Nlexpratom \derives\ & \Tidentifier &\\
 |\ & \Nlexpratom \parsesep \Nslices &\\
 |\ & \Nlexpratom \parsesep \Tdot \parsesep \Tidentifier &\\
-|\ & \Nlexpratom \parsesep \Tdot \parsesep \Tlbracket \parsesep \Clist{{\Tidentifier}} \parsesep \Trbracket &\\
+|\ & \Nlexpratom \parsesep \Tdot \parsesep \Tlpar \parsesep \NClist{\Tidentifier} \parsesep \Trpar &\\
 |\ & \Tlbracket \parsesep \NClist{{\Nlexpratom}} \parsesep \Trbracket &
 \end{flalign*}
 
@@ -450,8 +450,7 @@ except they do not derive tuples, which are the last derivation for $\Nexpr$.
                     |\  & \Tidentifier \parsesep \Plist{\Nexpr} &\\
                     |\  & \Nexprpattern \parsesep \Nslices &\\
                     |\  & \Nexprpattern \parsesep \Tdot \parsesep \Tidentifier&\\
-                    |\  & \Nexprpattern \parsesep \Tdot \parsesep \Tlbracket \parsesep \NClist{\Tidentifier} \parsesep \Trbracket &\\
-                    |\  & \Tlbracket \parsesep \NClist{\Nexpr} \parsesep \Trbracket &\\
+                    |\  & \Nexprpattern \parsesep \Tdot \parsesep \Plist {\Tidentifier} &\\
                     |\  & \Nexprpattern \parsesep \Tas \parsesep \Nty &\\
                     |\  & \Nexprpattern \parsesep \Tas \parsesep \Nintconstraints &\\
                     |\  & \Nexprpattern \parsesep \Tin \parsesep \Npatternset &\\
