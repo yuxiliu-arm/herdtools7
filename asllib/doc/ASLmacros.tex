@@ -487,6 +487,7 @@
 \newcommand\MUL[0]{\hyperlink{ast-mul}{\texttt{MUL}}} % Multiplication for int or reals or bitvectors
 \newcommand\NEQ[0]{\hyperlink{ast-neq}{\texttt{NEQ}}} % Non equality on two base values of same type
 \newcommand\OR[0]{\hyperlink{ast-or}{\texttt{OR}}} % Bitvector bitwise or
+\newcommand\BVCONCAT[0]{\hyperlink{ast-bvconcat}{\texttt{BV\_CONCAT}}} % Bitvector concatenation
 \newcommand\PLUS[0]{\hyperlink{ast-plus}{\texttt{PLUS}}} % Addition for int or reals or bitvectors
 \newcommand\POW[0]{\hyperlink{ast-pow}{\texttt{POW}}} % Exponentiation for integers
 \newcommand\RDIV[0]{\hyperlink{ast-rdiv}{\texttt{RDIV}}} % Division for reals
@@ -548,7 +549,7 @@
 \newcommand\EGetItem[0]{\hyperlink{ast-egetitem}{\textsf{E\_GetItem}}}
 \newcommand\EGetFields[0]{\hyperlink{ast-getfields}{\textsf{E\_GetFields}}}
 \newcommand\ERecord[0]{\hyperlink{ast-erecord}{\textsf{E\_Record}}}
-\newcommand\EConcat[0]{\hyperlink{ast-econcat}{\textsf{E\_Concat}}}
+\newcommand\EConcat[0]{\hyperlink{ast-econcat}{\textsf{E\_Concat}}} % TODO: remove
 \newcommand\ETuple[0]{\hyperlink{ast-etuple}{\textsf{E\_Tuple}}}
 \newcommand\EUnknown[0]{\hyperlink{ast-eunknown}{\textsf{E\_Unknown}}}
 \newcommand\EPattern[0]{\hyperlink{ast-epattern}{\textsf{E\_Pattern}}}
@@ -612,7 +613,8 @@
 \newcommand\ArrayLengthEnum[0]{\hyperlink{ast-arraylengthenum}{\textsf{ArrayLength\_Enum}}}
 
 % Slice labels
-\newcommand\SliceSingle[0]{\hyperlink{ast-slicesingle}{\textsf{Slice\_Single}}}
+\newcommand\SliceSingle[0]{\hyperlink{ast-slicesingle}{\textsf{Slice\_Single}}} % TODO: remove
+\newcommand\SliceArg[0]{\hyperlink{ast-slicearg}{\textsf{Slice\_Arg}}}
 \newcommand\SliceRange[0]{\hyperlink{ast-slicerange}{\textsf{Slice\_Range}}}
 \newcommand\SliceLength[0]{\hyperlink{ast-slicelength}{\textsf{Slice\_Length}}}
 \newcommand\SliceStar[0]{\hyperlink{ast-slicestar}{\textsf{Slice\_Star}}}

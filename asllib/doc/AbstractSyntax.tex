@@ -141,10 +141,10 @@ The following rules correspond to unary operations and binary operations that ca
 \\
         |\ & \overname{\EQOP}{\texttt{"=="}} \;|\; \overname{\NEQ}{\texttt{"!="}} \;|\; \overname{\GT}{\texttt{"<"}}
         \;|\; \overname{\GEQ}{\texttt{">="}} \;|\; \overname{\LT}{\texttt{"<"}} \;|\; \overname{\LEQ}{\texttt{"<="}}
-        & \hypertarget{ast-plus}{} \hypertarget{ast-minus}{} \hypertarget{ast-or}{} \hypertarget{ast-xor}{} \hypertarget{ast-and}{}
+        & \hypertarget{ast-plus}{} \hypertarget{ast-minus}{} \hypertarget{ast-or}{} \hypertarget{ast-xor}{} \hypertarget{ast-and}{} \hypertarget{ast-bv-concat}{}
 \\
         |\ & \overname{\PLUS}{\texttt{"+"}} \;|\; \overname{\MINUS}{\texttt{"-"}} \;|\; \overname{\OR}{\texttt{"OR"}}
-        \;|\; \overname{\XOR}{\texttt{"XOR"}} \;|\; \overname{\AND}{\texttt{"AND"}}
+        \;|\; \overname{\XOR}{\texttt{"XOR"}} \;|\; \overname{\AND}{\texttt{"AND"}} \;|\; \overname{\BVCONCAT}{\texttt{"::"}}
         & \hypertarget{ast-mul}{} \hypertarget{ast-div}{} \hypertarget{ast-divrm}{} \hypertarget{ast-mod}{} \hypertarget{ast-shl}{} \hypertarget{ast-shr}{}
 \\
         |\ & \overname{\MUL}{\texttt{"*"}} \;|\; \overname{\DIV}{\texttt{"DIV"}} \;|\; \overname{\DIVRM}{\texttt{"DIVRM"}}
@@ -185,8 +185,6 @@ and pattern matching expressions.
 	|\ & \EGetFields(\overtext{\expr}{record}, \overtext{\identifier^{*}}{field names})
   &\hypertarget{ast-erecord}{}\\
 	|\ & \ERecord(\overtext{\ty}{record type}, \overtext{(\identifier, \expr)^{*}}{field initializers})
-  &\hypertarget{ast-econcat}{}\\
-	|\ & \EConcat(\expr^{+})
   &\hypertarget{ast-etuple}{}\\
 	|\ & \ETuple(\expr^{+})
   &\hypertarget{ast-eunknown}{}\\
@@ -252,11 +250,11 @@ as indicated by respective comments.
 
 \subsection{Slices \label{sec:Slices}}
 
-\hypertarget{ast-slice}{} \hypertarget{ast-slicesingle}{}
+\hypertarget{ast-slice}{} \hypertarget{ast-slicearg}{}
 \begin{flalign*}
 % &&\ASTComment{Indexes an array or a bitvector.}\\
 % &&\ASTComment{All positions mentioned below are inclusive}\\
-\slice \derives\ & \SliceSingle(\overname{\expr}{\vi})
+\slice \derives\ & \SliceArg(\overname{\expr}{\vi})
   & \hypertarget{ast-slicerange}{}\\
   % & & \ASTComment{the slice of length \texttt{1} at position \vi.}\\
   |\ & \SliceRange(\overname{\expr}{\vj}, \overname{\expr}{\vi})
@@ -852,7 +850,6 @@ which is utilized both for the type system and semantics:
   \torexpr(\LESetFields(\vle, \vx)) &=& \EGetFields(\torexpr(\vle), \vx)\\
   \torexpr(\LEDiscard) &=& \EVar(\texttt{-})\\
   \torexpr(\LEDestructuring([\vle_{1..k}])) &=& \ETuple([i=1..k: \torexpr(\vle_i)])\\
-  \torexpr(\LEConcat([\vle_{1..k}], \Ignore)) &=& \EConcat([i=1..k: \torexpr(\vle_i)])\\
 \end{array}
 \]
 
