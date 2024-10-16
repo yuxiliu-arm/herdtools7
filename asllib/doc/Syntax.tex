@@ -449,6 +449,7 @@ except they do not derive tuples, which are the last derivation for $\Nexpr$.
                     |\  & \Tif \parsesep \Nexpr \parsesep \Tthen \parsesep \Nexpr \parsesep \Neelse &\\
                     |\  & \Tidentifier \parsesep \Plist{\Nexpr} &\\
                     |\  & \Nexprpattern \parsesep \Nslices &\\
+                    |\  & \Nexprpattern \parsesep \Tdot \parsesep \Tidentifier&\\
                     |\  & \Nexprpattern \parsesep \Tdot \parsesep \Tlpar \parsesep \NClist{\Tidentifier} \parsesep \Trpar &\\
                     |\  & \Nexprpattern \parsesep \Tas \parsesep \Nty &\\
                     |\  & \Nexprpattern \parsesep \Tas \parsesep \Nintconstraints &\\
@@ -504,7 +505,8 @@ except they do not derive tuples, which are the last derivation for $\Nexpr$.
 
 \hypertarget{def-nslice}{}
 \begin{flalign*}
-\Nslice \derivesinline\ & \Nexpr &\\
+\Nslice \derivesinline\ & \Nexpr \parsesep \Tcolon &\\
+              |\  & \Tcolon \parsesep \Nexpr &\\
               |\  & \Nexpr \parsesep \Tcolon \parsesep \Nexpr &\\
               |\  & \Nexpr \parsesep \Tpluscolon \parsesep \Nexpr &\\
               |\  & \Nexpr \parsesep \Tstarcolon \parsesep \Nexpr &
@@ -564,8 +566,7 @@ except they do not derive tuples, which are the last derivation for $\Nexpr$.
                     |\  & \Tidentifier \parsesep \Plist{\Nexpr} &\\
                     |\  & \Nexpr \parsesep \Nslices &\\
                     |\  & \Nexpr \parsesep \Tdot \parsesep \Tidentifier&\\
-                    |\  & \Nexpr \parsesep \Tdot \parsesep \Tlbracket \parsesep \NClist{\Tidentifier} \parsesep \Trbracket &\\
-                    |\  & \Tlbracket \parsesep \NClist{\Nexpr} \parsesep \Trbracket &\\
+                    |\  & \Nexpr \parsesep \Tdot \parsesep \Tlpar \parsesep \NClist{\Tidentifier} \parsesep \Trpar &\\
                     |\  & \Nexpr \parsesep \Tas \parsesep \Nty &\\
                     |\  & \Nexpr \parsesep \Tas \parsesep \Nintconstraints &\\
                     |\  & \Nexpr \parsesep \Tin \parsesep \Npatternset &\\
@@ -594,7 +595,7 @@ except they do not derive tuples, which are the last derivation for $\Nexpr$.
 \begin{flalign*}
 \Nbinop \derivesinline\ & \Tand \;|\; \Tband \;|\; \Tbor \;|\; \Tbeq \;|\; \Tdiv \;|\; \Tdivrm \;|\; \Txor \;|\; \Teqop \;|\; \Tneq &\\
                      |\ & \Tgt \;|\; \Tgeq \;|\; \Timpl \;|\; \Tlt \;|\; \Tleq \;|\; \Tplus \;|\; \Tminus \;|\; \Tmod \;|\; \Tmul &\\
-                     |\ & \Tor \;|\; \Trdiv \;|\; \Tshl \;|\; \Tshr \;|\; \Tpow \;|\; \Tconcat
+                     |\ & \Tor \;|\; \Trdiv \;|\; \Tshl \;|\; \Tshr \;|\; \Tpow \;|\; \Tcoloncolon \;|\; \Tconcat
 \end{flalign*}
 
 \section{Parse Trees \label{sec:ParseTrees}}
@@ -692,6 +693,7 @@ which is never returned by the scanner.
 \Tbor, \Tband, \Timpl, \Tbeq, \Tas & \leftassoc\\
 \Teqop, \Tneq & \leftassoc\\
 \Tgt, \Tgeq, \Tlt, \Tleq & \nonassoc\\
+\Tcoloncolon & \leftassoc\\
 \Tplus, \Tminus, \Tor, \Txor, \Tand & \leftassoc\\
 \Tmul, \Tdiv, \Tdivrm, \Trdiv, \Tmod, \Tshl, \Tshr & \leftassoc\\
 \Tpow, \Tconcat & \leftassoc\\
