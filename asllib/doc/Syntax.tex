@@ -449,8 +449,7 @@ except they do not derive tuples, which are the last derivation for $\Nexpr$.
                     |\  & \Tif \parsesep \Nexpr \parsesep \Tthen \parsesep \Nexpr \parsesep \Neelse &\\
                     |\  & \Tidentifier \parsesep \Plist{\Nexpr} &\\
                     |\  & \Nexprpattern \parsesep \Nslices &\\
-                    |\  & \Nexprpattern \parsesep \Tdot \parsesep \Tidentifier&\\
-                    |\  & \Nexprpattern \parsesep \Tdot \parsesep \Plist {\Tidentifier} &\\
+                    |\  & \Nexprpattern \parsesep \Tdot \parsesep \Tlpar \parsesep \NClist{\Tidentifier} \parsesep \Trpar &\\
                     |\  & \Nexprpattern \parsesep \Tas \parsesep \Nty &\\
                     |\  & \Nexprpattern \parsesep \Tas \parsesep \Nintconstraints &\\
                     |\  & \Nexprpattern \parsesep \Tin \parsesep \Npatternset &\\
