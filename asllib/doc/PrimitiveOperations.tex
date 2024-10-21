@@ -202,7 +202,7 @@ as well as a unique name.
 \\
         |\ & \overname{\EQOP}{\texttt{"=="}} \;|\; \overname{\NEQ}{\texttt{"!="}} \;|\; \overname{\GT}{\texttt{"<"}}
         \;|\; \overname{\GEQ}{\texttt{">="}} \;|\; \overname{\LT}{\texttt{"<"}} \;|\; \overname{\LEQ}{\texttt{"<="}}
-        & \hypertarget{ast-plus}{} \hypertarget{ast-minus}{} \hypertarget{ast-or}{} \hypertarget{ast-xor}{} \hypertarget{ast-and}{} \hypertarget{asl-bvconcat}
+        & \hypertarget{ast-plus}{} \hypertarget{ast-minus}{} \hypertarget{ast-or}{} \hypertarget{ast-xor}{} \hypertarget{ast-and}{} \hypertarget{ast-bvconcat}{}
 \\
         |\ & \overname{\PLUS}{\texttt{"+"}} \;|\; \overname{\MINUS}{\texttt{"-"}} \;|\; \overname{\OR}{\texttt{"OR"}}
         \;|\; \overname{\XOR}{\texttt{"XOR"}} \;|\; \overname{\AND}{\texttt{"AND"}} \;|\; \overname{\BVCONCAT}{\texttt{"::"}}
@@ -361,6 +361,12 @@ transforms a parse node $\vparsednode$ into an AST node $\vastnode$.
 \begin{mathpar}
 \inferrule[]{}{
   \buildbinop(\Nbinop(\Tor)) \astarrow \overname{\OR}{\vastnode}
+}
+\end{mathpar}
+
+\begin{mathpar}
+\inferrule[]{}{
+  \buildbinop(\Nbinop(\Tcoloncolon)) \astarrow \overname{\BVCONCAT}{\vastnode}
 }
 \end{mathpar}
 
@@ -551,6 +557,7 @@ argument types for a given binary operator:
   (\XOR       &,& \lbitvector &,& \lbitvector)&,\\
   (\MINUS     &,& \lbitvector &,& \lbitvector)&,\\
   (\PLUS      &,& \lbitvector &,& \lbitvector)&,\\
+  (\BVCONCAT  &,& \lbitvector &,& \lbitvector)&,\\
   (\MINUS     &,& \lbitvector &,& \lint)&,\\
   (\PLUS      &,& \lbitvector &,& \lint)&\\
 \end{array}
@@ -855,6 +862,15 @@ One of the following applies:
     \item define $a$ as the natural number represented by $a_{1..k}$;
     \item define $b$ as the natural number represented by $b_{1..k}$;
     \item define $c$ as the two's complement little endian representation of $a-b$ in $k$ bits;
+    \item define $\vr$ as the bitvector literal for $c$.
+  \end{itemize}
+
+  \item All of the following apply (\textsc{concat\_bits}):
+  \begin{itemize}
+    \item $\vvone$ is a bitvector literal for $a_{1..j}$;
+    \item $\vvtwo$ is a bitvector literal for $b_{1..k}$;
+    \item $\op$ is $\BVCONCAT$;
+    \item define $c_i$ as $a_i$ if $1 \leq i \leq j$ and $b_{i-j}$ otherwise, for $i=1..(j+k)$;
     \item define $\vr$ as the bitvector literal for $c$.
   \end{itemize}
 
@@ -1203,6 +1219,15 @@ of \texttt{width} bits.
   c \eqdef \inttobits(a - b, k)
 }{
   \binopliterals(\overname{\MINUS}{\op}, \overname{\lbitvector(a_{1..k})}{\vvone}, \overname{\lbitvector(b_{1..k})}{\vvtwo}) \typearrow \overname{\lbitvector(c)}{\vr}
+}
+\end{mathpar}
+
+\begin{mathpar}
+\inferrule[concat\_bits]{
+  i=1..j: c_i=a_i\\
+  i=(j+1)..(j+k): c_i=b_{i-j}
+}{
+  \binopliterals(\overname{\BVCONCAT}{\op}, \overname{\lbitvector(a_{1..j})}{\vvone}, \overname{\lbitvector(b_{1..k})}{\vvtwo}) \typearrow \lbitvector(c_{1..(j+k)})
 }
 \end{mathpar}
 
