@@ -560,7 +560,8 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
   let check_constrained_integer ~loc env t () =
     match (Types.make_anonymous env t).desc with
     | T_Int UnConstrained -> fatal_from loc Error.(ConstrainedIntegerExpected t)
-    | T_Int (WellConstrained _ | Parameterized _) -> ()
+    | T_Int (WellConstrained _) -> fatal_from loc Error.(BaseValueNonStatic t)
+    | T_Int (Parameterized _) -> fatal_from loc Error.(BaseValueNonStatic t)
     | _ -> conflict loc [ integer' ] t
   (* End *)
 
