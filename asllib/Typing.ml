@@ -30,7 +30,7 @@ let ( |: ) = Instrumentation.TypingNoInstr.use_with
 let fatal_from = Error.fatal_from
 let undefined_identifier pos x = fatal_from pos (Error.UndefinedIdentifier x)
 let invalid_expr e = fatal_from e (Error.InvalidExpr e)
-let unsupported_expr e = Error.fatal_from e Error.(UnsupportedExpr (Static, e))
+let unsupported_expr e = fatal_from e Error.(UnsupportedExpr (Static, e))
 
 let conflict pos expected provided =
   fatal_from pos (Error.ConflictingTypes (expected, provided))
@@ -560,8 +560,7 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
   let check_constrained_integer ~loc env t () =
     match (Types.make_anonymous env t).desc with
     | T_Int UnConstrained -> fatal_from loc Error.(ConstrainedIntegerExpected t)
-    | T_Int (WellConstrained _) -> fatal_from loc Error.(BaseValueNonStatic t)
-    | T_Int (Parameterized _) -> fatal_from loc Error.(BaseValueNonStatic t)
+    | T_Int (WellConstrained _ | Parameterized _) -> ()
     | _ -> conflict loc [ integer' ] t
   (* End *)
 
@@ -2950,6 +2949,94 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
       { env with global = add_global_constant name v env.global }
     with Error.(ASLException { desc = UnsupportedExpr _; _ }) -> env
 
+  let rec base_value loc env t : expr =
+    let t_struct = Types.get_structure env t in
+    let lit v = add_pos_from loc (E_Literal v) in
+    let var v = add_pos_from loc (E_Var v) in
+    let fatal_non_static e = fatal_from t (Error.BaseValueNonStatic (t, e)) in
+    let fatal_is_empty () = fatal_from t (Error.BaseValueEmptyType t) in
+    match t_struct.desc with
+    | T_Bool -> L_Bool false |> lit
+    | T_Bits (e, _) ->
+        let v = StaticModel.normalize env e in
+        let length =
+          match reduce_to_z_opt env v with
+          | None -> fatal_non_static e
+          | Some i -> i
+        in
+        L_BitVector (Bitvector.zeros (Z.to_int length)) |> lit
+    | T_Enum li -> (
+        try IMap.find (List.hd li) env.global.constant_values |> lit
+        with Failure _ | Not_found -> fatal_is_empty ())
+    | T_Int UnConstrained -> L_Int Z.zero |> lit
+    | T_Int (Parameterized (_, id)) -> fatal_is_empty ()
+    | T_Int (WellConstrained []) -> fatal_is_empty ()
+    | T_Int (WellConstrained cs) ->
+        failwith "TODO"
+        (* let leq x y = choice (B.binop LEQ x y) true false in
+           let is_neg v = leq v v_zero in
+           let abs v =
+             let* b = is_neg v in
+             if b then B.unop NEG v else return v
+           in
+           let m_none = return None in
+           let abs_min v1 v2 =
+             match (v1, v2) with
+             | None, v | v, None -> return v
+             | Some v1, Some v2 ->
+                 let* abs_v1 = abs v1 and* abs_v2 = abs v2 in
+                 let* v = choice (B.binop LEQ abs_v1 abs_v2) v1 v2 in
+                 return (Some v)
+           in
+           let big_abs_min = big_op m_none abs_min in
+           let one_c = function
+             | Constraint_Exact e ->
+                 let* v = eval_expr_sef env e in
+                 return (Some v)
+             | Constraint_Range (e1, e2) -> (
+                 let* v1 = eval_expr_sef env e1 and* v2 = eval_expr_sef env e2 in
+                 let* b = leq v1 v2 in
+                 if not b then m_none
+                 else
+                   let* b1 = is_neg v1 and* b2 = is_neg v2 in
+                   match (b1, b2) with
+                   | true, false -> return (Some v_zero)
+                   | false, true ->
+                       assert false (* caught by the [if not b] earlier *)
+                   | true, true -> return (Some v2)
+                   | false, false -> return (Some v1))
+           in
+           let* v = List.map one_c cs |> big_abs_min in
+           match v with
+           | None -> fatal_from t (Error.BaseValueEmptyType t)
+           | Some v -> return v) *)
+    | T_Named id -> fatal_non_static (var id)
+    | T_Real -> L_Real Q.zero |> lit
+    | T_Exception fields | T_Record fields ->
+        List.map
+          (fun (name, t_field) ->
+            let v = base_value loc env t_field in
+            return (name, v))
+          fields
+        |> sync_list >>= B.create_record
+    | T_String -> L_String "" |> lit
+    | T_Tuple li ->
+        List.map (base_value env) li |> sync_list >>= B.create_vector
+    | T_Array (length, ty) ->
+        let* v = base_value env ty in
+        let* i_length =
+          match length with
+          | ArrayLength_Enum (_, i) ->
+              assert (i >= 0);
+              return i
+          | ArrayLength_Expr e -> (
+              let* length = eval_expr_sef env e in
+              match B.v_to_int length with
+              | Some i when i >= 0 -> return i
+              | Some _ | None -> unsupported_expr e)
+        in
+        List.init i_length (Fun.const v) |> B.create_vector
+
   (* Begin DeclareGlobalStorage *)
   let declare_global_storage loc gsd genv =
     let () = if false then Format.eprintf "Declaring %s@." gsd.name in
@@ -2981,17 +3068,22 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
       | Some t1, None -> t1
       | None, None -> Error.fatal_from loc UnrespectedParserInvariant
     in
+    let initial_value'' =
+      match initial_value' with
+      | Some initial_value' -> initial_value'
+      | None -> base_value loc env declared_t
+    in
     let genv1 = add_global_storage loc name keyword genv declared_t in
     let env1 = with_empty_local genv1 in
     (* UpdateGlobalStorage( *)
     let env2 =
-      match (keyword, initial_value') with
-      | GDK_Constant, Some e -> try_add_global_constant name env1 e
-      | GDK_Let, Some e when is_statically_evaluable ~loc env1 e ->
-          let e' = StaticModel.try_normalize env1 e in
-          add_global_immutable_expr name e' env1
-      | (GDK_Constant | GDK_Let), None ->
-          Error.fatal_from loc UnrespectedParserInvariant
+      match (keyword, initial_value'') with
+      | GDK_Constant, e -> try_add_global_constant name env1 e
+      | GDK_Let, e ->
+          if is_statically_evaluable ~loc env1 e then
+            let e' = StaticModel.try_normalize env1 e in
+            add_global_immutable_expr name e' env1
+          else base_value_non_static declared_t e
       | _ -> env1
       (* UpdateGlobalStorage) *)
     in
