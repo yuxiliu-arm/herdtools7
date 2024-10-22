@@ -183,10 +183,6 @@ let     pared(x) == delimited(    LPAR, x, RPAR    )
 let    braced(x) == delimited(  LBRACE, x, RBRACE  )
 let bracketed(x) == delimited(LBRACKET, x, RBRACKET)
 
-let bracketed_or_pared(x) :=
-  | x=bracketed(x); { x }
-  | x=pared(x);     { x }
-
 (* Option handling *)
 (* [some] returns an option, but ensures it is there. *)
 let some(x) == ~ = x ; <Some>
@@ -323,7 +319,7 @@ let make_expr(sub_expr) ==
     | x=IDENTIFIER; args=plist(expr); ~=nargs;                    < E_Call               >
     | e=sub_expr; ~=slices;                                       < E_Slice              >
     | e=sub_expr; DOT; x=IDENTIFIER;                              < E_GetField           >
-    | e=sub_expr; DOT; fs=pared(nclist(IDENTIFIER));              < E_GetFields          >
+    | e=sub_expr; DOT; fs=bracketed(nclist(IDENTIFIER));          < E_GetFields          >
     | ~=sub_expr; AS; ~=ty;                                       < E_ATC              >
     | ~=sub_expr; AS; ~=implicit_t_int;                           < E_ATC              >
 
@@ -445,7 +441,7 @@ let lexpr_atom_desc :=
   | ~=IDENTIFIER ; <LE_Var>
   | le=lexpr_atom; ~=slices; <LE_Slice>
   | le=lexpr_atom; DOT; field=IDENTIFIER; <LE_SetField>
-  | le=lexpr_atom; DOT; li=pared(clist(IDENTIFIER)); { LE_SetFields (le, li, []) }
+  | le=lexpr_atom; DOT; li=bracketed(clist(IDENTIFIER)); { LE_SetFields (le, li, []) }
   | les=bracketed(nclist(lexpr_atom)); { LE_Concat (les, None) }
 
 let lexpr_atom == annotated(lexpr_atom_desc)

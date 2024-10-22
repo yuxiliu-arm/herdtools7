@@ -1,10 +1,8 @@
 [] overloading revamp
 
-1) Replace [] around nested bitvector's or record's field name list with () parentheses.
+1) Replace [] around bitvectors to be concatenated with :: bit concatenation operator
 
-2) Replace [] around bitvectors to be concatenated with :: bit concatenation operator
-
-3) Remove unadorned [lsb] for single-bit slice and add
+2) Remove unadorned [lsb] for single-bit slice and add
 .  a) [lsb:] as syntactic sugar for [lsb+:1] (single-bit slice)
 .  b) [:wid] as syntactic sugar for [0+:wid] (least sig wid bits)
 
@@ -13,10 +11,10 @@
   > func main() => integer begin
   >   var x : MyType = '0000';
   >   print(x);
-  >   print(x.(A));
-  >   x.(A, B) = '110';
+  >   print(x.[A]);
+  >   x.[A, B] = '110';
   >   print(x);
-  >   print(x.(A, B));
+  >   print(x.[A, B]);
   >   print(x[2:]);
   >   print(x[:2]);
   >   let z = x.A :: '1010';
