@@ -2951,27 +2951,39 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
 
   let rec base_value loc env t : expr =
     let t_struct = Types.get_structure env t in
-    let lit v = add_pos_from loc (E_Literal v) in
-    let var v = add_pos_from loc (E_Var v) in
+    let add_pos = add_pos_from loc in
+    let lit v = add_pos (E_Literal v) in
+    let var v = add_pos (E_Var v) in
     let fatal_non_static e = fatal_from t (Error.BaseValueNonStatic (t, e)) in
     let fatal_is_empty () = fatal_from t (Error.BaseValueEmptyType t) in
+    let reduce_to_z e =
+      match reduce_to_z_opt env e with
+      | None -> fatal_non_static e
+      | Some i -> i
+    in
     match t_struct.desc with
     | T_Bool -> L_Bool false |> lit
     | T_Bits (e, _) ->
-        let v = StaticModel.normalize env e in
-        let length =
-          match reduce_to_z_opt env v with
-          | None -> fatal_non_static e
-          | Some i -> i
-        in
-        L_BitVector (Bitvector.zeros (Z.to_int length)) |> lit
+        let length = reduce_to_z e |> Z.to_int in
+        L_BitVector (Bitvector.zeros length) |> lit
     | T_Enum li -> (
         try IMap.find (List.hd li) env.global.constant_values |> lit
         with Failure _ | Not_found -> fatal_is_empty ())
     | T_Int UnConstrained -> L_Int Z.zero |> lit
-    | T_Int (Parameterized (_, id)) -> fatal_is_empty ()
+    | T_Int (Parameterized (_, id)) -> fatal_non_static (var id)
     | T_Int (WellConstrained []) -> fatal_is_empty ()
     | T_Int (WellConstrained cs) ->
+        let normalize = StaticModel.try_normalize env in
+        let one_c = function
+          | Constraint_Exact e -> normalize e
+          | Constraint_Range (e1, e2) ->
+              let v1 = normalize e1 in
+              let v2 = normalize e2 in
+              let is_neg e = binop LT e zero_expr in
+              cond_expr (binop LEQ v1 v2)
+                (cond_expr (is_neg v1) (cond_expr (is_neg v2) v2 zero_expr) v1)
+                (fatal_is_empty ())
+        in
         failwith "TODO"
         (* let leq x y = choice (B.binop LEQ x y) true false in
            let is_neg v = leq v v_zero in
@@ -3013,29 +3025,27 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
     | T_Named id -> fatal_non_static (var id)
     | T_Real -> L_Real Q.zero |> lit
     | T_Exception fields | T_Record fields ->
-        List.map
-          (fun (name, t_field) ->
-            let v = base_value loc env t_field in
-            return (name, v))
-          fields
-        |> sync_list >>= B.create_record
+        let fields =
+          List.map
+            (fun (name, t_field) ->
+              let v = base_value loc env t_field in
+              (name, v))
+            fields
+        in
+        E_Record (t, fields) |> add_pos
     | T_String -> L_String "" |> lit
     | T_Tuple li ->
-        List.map (base_value env) li |> sync_list >>= B.create_vector
+        let exprs = List.map (base_value loc env) li in
+        E_Tuple exprs |> add_pos
     | T_Array (length, ty) ->
-        let* v = base_value env ty in
-        let* i_length =
+        let v = base_value loc env ty in
+        let length =
           match length with
-          | ArrayLength_Enum (_, i) ->
-              assert (i >= 0);
-              return i
-          | ArrayLength_Expr e -> (
-              let* length = eval_expr_sef env e in
-              match B.v_to_int length with
-              | Some i when i >= 0 -> return i
-              | Some _ | None -> unsupported_expr e)
+          | ArrayLength_Enum (_, i) -> i
+          | ArrayLength_Expr e -> reduce_to_z e |> Z.to_int
         in
-        List.init i_length (Fun.const v) |> B.create_vector
+        let exprs = List.init length (Fun.const v) in
+        E_Tuple exprs |> add_pos
 
   (* Begin DeclareGlobalStorage *)
   let declare_global_storage loc gsd genv =
