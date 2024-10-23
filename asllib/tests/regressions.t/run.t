@@ -358,7 +358,7 @@ Base values
 
   $ aslref base_values_empty.asl
   File base_values_empty.asl, line 3, characters 9 to 23:
-  ASL Execution error: base value of empty type integer {N..M}
+  ASL Typing error: base value of empty type integer {N..M}
   [1]
 
 Empty getters/setters
