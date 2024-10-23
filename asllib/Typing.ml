@@ -2973,54 +2973,42 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
     | T_Int (Parameterized (_, id)) -> fatal_non_static (var id)
     | T_Int (WellConstrained []) -> fatal_is_empty ()
     | T_Int (WellConstrained cs) -> (
-        let normalize = StaticModel.try_normalize env in
-        let is_neg e = binop LT e zero_expr in
         let one_c = function
-          | Constraint_Exact e -> normalize e
+          | Constraint_Exact e -> reduce_to_z e
           | Constraint_Range (e1, e2) ->
-              let v1 = normalize e1 in
-              let v2 = normalize e2 in
-              cond_expr (binop LEQ v1 v2)
-                (cond_expr (is_neg v1) (cond_expr (is_neg v2) v2 zero_expr) v1)
-                (fatal_is_empty ())
-              |> normalize
+              let v1 = reduce_to_z e1 in
+              let v2 = reduce_to_z e2 in
+              if v1 <= v2 then
+                match Z.(sign v1, sign v2) with
+                | -1, -1 -> (* v1 <= v2 < 0 *) v2
+                | -1, _ -> (* v1 < 0 <= v2 *) Z.zero
+                | _, _ -> (* 0 <= v1 <= v2 *) v1
+              else fatal_is_empty ()
         in
         match List.map one_c cs with
         | [] -> fatal_is_empty ()
         | c :: cs ->
-            let lit_zero = E_Literal (L_Int Z.zero) in
-            let is_neg_abs e =
-              let is_neg = is_neg e |> normalize in
-              let abs = cond_expr is_neg (unop NEG e) e |> normalize in
-              (is_neg, abs)
-            in
-            let prev_is_neg_abs = ref (is_neg_abs c) in
             let rec go c1 = function
               | [] -> c1
               | c2 :: cs ->
-                  if c2.desc = lit_zero then zero_expr
+                  if c2 = Z.zero then Z.zero
                   else
-                    let is_neg1, abs1 = !prev_is_neg_abs in
-                    let is_neg2, abs2 = is_neg_abs c2 in
-                    let use1 () =
-                      prev_is_neg_abs := (is_neg1, abs1);
-                      c1
-                    in
-                    let use2 () =
-                      prev_is_neg_abs := (is_neg2, abs2);
-                      c2
-                    in
                     let c =
-                      cond_expr (binop LT abs1 abs2) (use1 ())
-                        (cond_expr (binop GT abs1 abs2) (use2 ())
-                           (* abs1 = abs2 *)
-                           (cond_expr is_neg1 (use2 ()) (use1 ())))
-                      |> normalize
+                      match Z.compare (Z.abs c1) (Z.abs c2) with
+                      | -1 -> c1
+                      | 1 -> c2
+                      | _ ->
+                          (* bias pos *)
+                          if Z.sign c1 = 1 then c1 else c2
                     in
                     go c cs
             in
-            go c cs)
-    | T_Named id -> fatal_non_static (var id)
+            let c = if c = Z.zero then Z.zero else go c cs in
+            L_Int c |> lit)
+    | T_Named _id ->
+        let () = Format.eprintf "%s env: %a" _id pp_env env in
+        let t = Types.make_anonymous env t in
+        base_value loc env t
     | T_Real -> L_Real Q.zero |> lit
     | T_Exception fields | T_Record fields ->
         let fields =
