@@ -2972,56 +2972,54 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
     | T_Int UnConstrained -> L_Int Z.zero |> lit
     | T_Int (Parameterized (_, id)) -> fatal_non_static (var id)
     | T_Int (WellConstrained []) -> fatal_is_empty ()
-    | T_Int (WellConstrained cs) ->
+    | T_Int (WellConstrained cs) -> (
         let normalize = StaticModel.try_normalize env in
+        let is_neg e = binop LT e zero_expr in
         let one_c = function
           | Constraint_Exact e -> normalize e
           | Constraint_Range (e1, e2) ->
               let v1 = normalize e1 in
               let v2 = normalize e2 in
-              let is_neg e = binop LT e zero_expr in
               cond_expr (binop LEQ v1 v2)
                 (cond_expr (is_neg v1) (cond_expr (is_neg v2) v2 zero_expr) v1)
                 (fatal_is_empty ())
+              |> normalize
         in
-        failwith "TODO"
-        (* let leq x y = choice (B.binop LEQ x y) true false in
-           let is_neg v = leq v v_zero in
-           let abs v =
-             let* b = is_neg v in
-             if b then B.unop NEG v else return v
-           in
-           let m_none = return None in
-           let abs_min v1 v2 =
-             match (v1, v2) with
-             | None, v | v, None -> return v
-             | Some v1, Some v2 ->
-                 let* abs_v1 = abs v1 and* abs_v2 = abs v2 in
-                 let* v = choice (B.binop LEQ abs_v1 abs_v2) v1 v2 in
-                 return (Some v)
-           in
-           let big_abs_min = big_op m_none abs_min in
-           let one_c = function
-             | Constraint_Exact e ->
-                 let* v = eval_expr_sef env e in
-                 return (Some v)
-             | Constraint_Range (e1, e2) -> (
-                 let* v1 = eval_expr_sef env e1 and* v2 = eval_expr_sef env e2 in
-                 let* b = leq v1 v2 in
-                 if not b then m_none
-                 else
-                   let* b1 = is_neg v1 and* b2 = is_neg v2 in
-                   match (b1, b2) with
-                   | true, false -> return (Some v_zero)
-                   | false, true ->
-                       assert false (* caught by the [if not b] earlier *)
-                   | true, true -> return (Some v2)
-                   | false, false -> return (Some v1))
-           in
-           let* v = List.map one_c cs |> big_abs_min in
-           match v with
-           | None -> fatal_from t (Error.BaseValueEmptyType t)
-           | Some v -> return v) *)
+        match List.map one_c cs with
+        | [] -> fatal_is_empty ()
+        | c :: cs ->
+            let lit_zero = E_Literal (L_Int Z.zero) in
+            let is_neg_abs e =
+              let is_neg = is_neg e |> normalize in
+              let abs = cond_expr is_neg (unop NEG e) e |> normalize in
+              (is_neg, abs)
+            in
+            let prev_is_neg_abs = ref (is_neg_abs c) in
+            let rec go c1 = function
+              | [] -> c1
+              | c2 :: cs ->
+                  if c2.desc = lit_zero then zero_expr
+                  else
+                    let is_neg1, abs1 = !prev_is_neg_abs in
+                    let is_neg2, abs2 = is_neg_abs c2 in
+                    let use1 () =
+                      prev_is_neg_abs := (is_neg1, abs1);
+                      c1
+                    in
+                    let use2 () =
+                      prev_is_neg_abs := (is_neg2, abs2);
+                      c2
+                    in
+                    let c =
+                      cond_expr (binop LT abs1 abs2) (use1 ())
+                        (cond_expr (binop GT abs1 abs2) (use2 ())
+                           (* abs1 = abs2 *)
+                           (cond_expr is_neg1 (use2 ()) (use1 ())))
+                      |> normalize
+                    in
+                    go c cs
+            in
+            go c cs)
     | T_Named id -> fatal_non_static (var id)
     | T_Real -> L_Real Q.zero |> lit
     | T_Exception fields | T_Record fields ->
@@ -3089,11 +3087,9 @@ module Annotate (C : ANNOTATE_CONFIG) : S = struct
     let env2 =
       match (keyword, initial_value'') with
       | GDK_Constant, e -> try_add_global_constant name env1 e
-      | GDK_Let, e ->
-          if is_statically_evaluable ~loc env1 e then
-            let e' = StaticModel.try_normalize env1 e in
-            add_global_immutable_expr name e' env1
-          else base_value_non_static declared_t e
+      | GDK_Let, e when is_statically_evaluable ~loc env1 e ->
+          let e' = StaticModel.try_normalize env1 e in
+          add_global_immutable_expr name e' env1
       | _ -> env1
       (* UpdateGlobalStorage) *)
     in
