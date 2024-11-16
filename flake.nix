@@ -18,6 +18,7 @@
               comment
               relsize
               currfile
+              make4ht
               ;
           };
       in
