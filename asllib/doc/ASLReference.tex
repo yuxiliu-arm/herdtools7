@@ -1,5 +1,14 @@
 \documentclass{book}
 \input{ASLmacros}
+\renewcommand\hyperlink[2]{#2}
+% \renewcommand\color[1]{}
+% \renewcommand\xlongrightarrow[1]{\xrightarrow{\qquad#1\qquad}}
+\newenvironment{mathpar}{\begin{displaymath}\begin{prooftree}}{\end{prooftree}\end{displaymath}}
+\renewcommand\inferrule[2]{\AxiomC{$\displaylines{#1}$}\UnaryInfC{$\displaylines{#2}$}}
+\renewcommand\and[0]{\\}
+\newenvironment{flalign}{\begin{align}}{\end{align}}
+\newenvironment{flalign*}{\begin{align*}}{\end{align*}}
+\renewcommand\mathsmaller[1]{#1}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Macros for including code snippets from the ASLRef implementation
