@@ -7,7 +7,7 @@
 \newenvironment{mathpar}{\begin{displaymath}\begin{prooftree}}{\end{prooftree}\end{displaymath}}
 \renewcommand\inferrule[3][]{\AxiomC{$\displaylines{#2}$}\LeftLabel{#1}\UnaryInfC{$\displaylines{#3}$}}
 
-\renewcommand\and[0]{\\}
+\renewcommand\and[0]{\end{prooftree}\end{displaymath}\begin{displaymath}\begin{prooftree}}
 
 % \renewenvironment{flalign}{\begin{math}\begin{aligned}}{\end{aligned}\end{math}}
 % \renewenvironment{flalign*}{\begin{math}\begin{aligned}}{\end{aligned}\end{math}}
