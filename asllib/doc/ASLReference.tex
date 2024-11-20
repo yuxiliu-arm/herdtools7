@@ -1,14 +1,25 @@
 \documentclass{book}
 \input{ASLmacros}
-\renewcommand\hyperlink[2]{#2}
 % \renewcommand\color[1]{}
-% \renewcommand\xlongrightarrow[1]{\xrightarrow{\qquad#1\qquad}}
+\renewcommand\xlongrightarrow[1]{\xrightarrow{\qquad#1\qquad}}
+
+% inferrule override
 \newenvironment{mathpar}{\begin{displaymath}\begin{prooftree}}{\end{prooftree}\end{displaymath}}
-\renewcommand\inferrule[2]{\AxiomC{$\displaylines{#1}$}\UnaryInfC{$\displaylines{#2}$}}
+\renewcommand\inferrule[3][]{\AxiomC{$\displaylines{#2}$}\LeftLabel{#1}\UnaryInfC{$\displaylines{#3}$}}
+
 \renewcommand\and[0]{\\}
+
 \newenvironment{flalign}{\begin{align}}{\end{align}}
 \newenvironment{flalign*}{\begin{align*}}{\end{align*}}
+
+% not supported by mathjax
 \renewcommand\mathsmaller[1]{#1}
+\renewcommand\textsc[1]{\textbf{#1}}
+
+% TODO: disable only in mathmode
+\renewcommand\hyperlink[2]{#2}
+\renewcommand\hypertarget[2]{#2}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Macros for including code snippets from the ASLRef implementation
