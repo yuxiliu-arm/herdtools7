@@ -593,10 +593,10 @@ literal.
 The lexeme action
 \[
 \stringescape(s_1, s_2) \triangleq \begin{cases}
-  \Tstringchar(10) & s_1 = \texttt{\textbackslash\;\;n}\\
-  \Tstringchar(9) & s_1 = \texttt{\textbackslash\;\;t}\\
-  \Tstringchar(34) & s_1 = \texttt{\textbackslash\;\;"}\\
-  \Tstringchar(92) & s_1 = \texttt{\textbackslash\;\;\textbackslash}\\
+  \Tstringchar(10) & s_1 = \textbackslash\texttt{\;\;n}\\
+  \Tstringchar(9) & s_1 = \textbackslash\texttt{\;\;t}\\
+  \Tstringchar(34) & s_1 = \textbackslash\texttt{\;\;"}\\
+  \Tstringchar(92) & s_1 = \textbackslash\texttt{\;\;}\textbackslash\\
 \end{cases}
 \]
 returns the ASCII character for the corresponding escape string, in decimal encoding,
