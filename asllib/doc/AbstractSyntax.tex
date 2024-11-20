@@ -95,7 +95,7 @@ Node types are defined recursively as follows:
 
 An abstract syntax consists of a set of derivation rules and a start non-terminal.
 
-\newcommand\ASTComment[1]{//\quad\textit{#1}\ }
+
 
 \section{Untyped Abstract Grammar\label{sec:UntypedAbstractGrammar}}
 
@@ -257,19 +257,19 @@ as indicated by respective comments.
 
 \hypertarget{ast-slice}{} \hypertarget{ast-slicesingle}{}
 \begin{flalign*}
-% &&\ASTComment{Indexes an array or a bitvector.}\\
-% &&\ASTComment{All positions mentioned below are inclusive}\\
+
+
 \slice \derives\ & \SliceSingle(\overname{\expr}{\vi})
   & \hypertarget{ast-slicerange}{}\\
-  % & & \ASTComment{the slice of length \texttt{1} at position \vi.}\\
+
   |\ & \SliceRange(\overname{\expr}{\vj}, \overname{\expr}{\vi})
   & \hypertarget{ast-slicelength}{}\\
-  % & & \ASTComment{the slice from \vi\ to \texttt{j - 1}.}\\
+
   |\ & \SliceLength(\overname{\expr}{\vi}, \overname{\expr}{\vn})
   & \hypertarget{ast-slicestar}{}\\
-  % & & \ASTComment{the slice starting at \vi\ of length \vn.}\\
+
   |\ & \SliceStar(\overname{\expr}{\vi}, \overname{\expr}{\vn}) &
-  % & & \ASTComment{the slice starting at \texttt{i*n} of length \vn}
+
 \end{flalign*}
 
 \subsection{Subprogram calls \label{sec:SubprogramCalls}}
@@ -313,52 +313,51 @@ as indicated by respective comments.
   |\ & \TRecord(\Field^{*})
   & \hypertarget{ast-texception}{}\\
   |\ & \TException(\Field^{*})
-% &  & & \ASTComment{This is related to \identi{LDNP}}
+
 \end{flalign*}
 
 \subsection{Constraints \label{sec:Constraints}}
 
 \hypertarget{ast-constraintkind}{} \hypertarget{ast-unconstrained}{}
 \begin{flalign*}
-  % & & \ASTComment{Constraints that may be assigned to integer types.}  \\
+
   \constraintkind \derives\ & \unconstrained
-  % & & \ASTComment{The unconstrained integer type.}
+
   & \hypertarget{ast-wellconstrained}{}\\
   |\ & \wellconstrained(\intconstraint^{+})
-  % & & \ASTComment{An integer type with explicit constraints.}
   & \hypertarget{ast-pendingconstrained}{}\\
   |\ & \pendingconstrained{}
   & \hypertarget{ast-parameterized}{}\\
   |\ & \parameterized(\overtext{\identifier}{parameter}) &
-  % & & \ASTComment{Implicitly constrained integer from function declaration.} \\
-  % & & \ASTComment{Attributes are:} \\
-  % & & \ASTComment{- a unique integer identifier and the variable} \\
-  % & & \ASTComment{- the type was implicitly constructed from.} \\
+
+
+
+
 \end{flalign*}
 
 \hypertarget{ast-intconstraint}{} \hypertarget{ast-constraintexact}{}
 \begin{flalign*}
-% & & \ASTComment{A constraint on an integer part.}\\
+
 \intconstraint \derives\ & \ConstraintExact(\expr)
-  % & & \ASTComment{A single value, given by a statically evaluable expression.}
+
   & \hypertarget{ast-constraintrange}{}\\
   |\ & \ConstraintRange(\overtext{\expr}{start}, \overtext{\expr}{end})&
-  % & & \ASTComment{An interval between two statically evaluable expression.}\\
+
 \end{flalign*}
 
 \subsection{Bit Fields \label{sec:BitFields}}
 
 \hypertarget{ast-bitfield}{} \hypertarget{ast-bitfieldsimple}{}
 \begin{flalign*}
-% & & \ASTComment{Represent static slices on a given bitvector type.}\\
+
 \bitfield \derives\ & \BitFieldSimple(\identifier, \slice^{*})
-  % & & \ASTComment{A name and its corresponding slice.}
+
   & \hypertarget{ast-bitfieldnested}{}\\
   |\ & \BitFieldNested(\identifier, \slice^{*}, \bitfield^{*})
-  % & & \ASTComment{A name, its corresponding slice and some nested bitfields.}
+
   & \hypertarget{ast-bitfieldtype}{}\\
   |\ & \BitFieldType(\identifier, \slice^{*}, \ty) &
-  % & & \ASTComment{A name, its corresponding slice, and the type of the bitfield.}\\
+
 \end{flalign*}
 
 \subsection{Array Indices \label{sec:ArrayIndices}}
@@ -417,8 +416,8 @@ the local declaration item is
 \localdeclitem \derives\ &
   & \hypertarget{ast-ldivar}{}\\
   |\ & \LDIVar(\identifier)
-  % & & \ASTComment{\texttt{LDI\_Var x} is the variable declaration of the variable \texttt{x}, used for example in:}\\
-  % & & \ASTComment{\texttt{let x = 42;}.}
+
+
   & \hypertarget{ast-ldituple}{}\\
   |\ & \LDITuple(\identifier^*) &
   % & & \ASTComment{\texttt{LDI\_Tuple ldis} is the tuple declarations of the items in \texttt{ldis},}\\
@@ -465,7 +464,7 @@ the local declaration item is
   \hypertarget{ast-srepeat}{} &\\
   |\ & \SRepeat(\overtext{\stmt}{loop body}, \overtext{\expr}{condition}, \overtext{\expr?}{loop limit})
   \hypertarget{ast-sthrow}{} &\\
-  & \ASTComment{The option represents an implicit throw: \texttt{throw;}.}\\
+
   |\ & \SThrow(\expr?) &\\
   \hypertarget{ast-stry}{} &\\
   |\ & \STry(\stmt, \catcher^*, \overtext{\stmt?}{otherwise})
