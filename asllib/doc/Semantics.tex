@@ -578,7 +578,7 @@ rule, along with the rule for binary operator (for multiplication), to evaluate 
   \inferrule[\ref{sec:SemanticsRule.Binop}]{
     \evalexpr{ \emptyenv, \veonetwo } \evalarrow \Normal(\nvint(3), \emptyenv)\\
     \evalexpr{ \emptyenv, \vefourfive } \evalarrow \Normal(\nvint(9), \emptyenv)\\
-    \inferrule[\ref{sec:SemanticsRule.BinopValues}]{}{\binoprel(\MUL, \nvint(3), \nvint(9)) \evalarrow \nvint(27)}
+    \binoprel(\MUL, \nvint(3), \nvint(9)) \evalarrow \nvint(27)
   }
   {
     \evalexpr{ \emptyenv, \EBinop(\MUL, \veonetwo, \vefourfive) } \evalarrow
