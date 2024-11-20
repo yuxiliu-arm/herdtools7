@@ -551,10 +551,10 @@ Finally, the transitions for both of the subexpressions are used as premises for
 rule, along with the rule for binary operator (for multiplication), to evaluate the entire expression.
 
 \begin{mathpar}
-  \inferrule*[right=\ref{sec:SemanticsRule.Binop}]{
-    \inferrule*[right=\ref{sec:SemanticsRule.ELit}]{}{ \evalexpr{\emptyenv, \veone} \evalarrow \Normal(\nvint(1), \emptyenv) } \\\\
-    \inferrule*[right=\ref{sec:SemanticsRule.ELit}]{}{ \evalexpr{\emptyenv, \vetwo} \evalarrow \Normal(\nvint(2), \emptyenv) } \\\\
-    \inferrule*[right=\ref{sec:SemanticsRule.BinopValues}]{}{\binoprel(\PLUS, \nvint(1), \nvint(2)) \evalarrow \nvint(3)}
+  \inferrule[\ref{sec:SemanticsRule.Binop}]{
+    \inferrule[\ref{sec:SemanticsRule.ELit}]{}{ \evalexpr{\emptyenv, \veone} \evalarrow \Normal(\nvint(1), \emptyenv) } \\\\
+    \inferrule[\ref{sec:SemanticsRule.ELit}]{}{ \evalexpr{\emptyenv, \vetwo} \evalarrow \Normal(\nvint(2), \emptyenv) } \\\\
+    \inferrule[\ref{sec:SemanticsRule.BinopValues}]{}{\binoprel(\PLUS, \nvint(1), \nvint(2)) \evalarrow \nvint(3)}
   }
   {
     \evalexpr{ \emptyenv, \veonetwo } \evalarrow
@@ -563,10 +563,10 @@ rule, along with the rule for binary operator (for multiplication), to evaluate 
 \end{mathpar}
 
 \begin{mathpar}
-  \inferrule*[right=\ref{sec:SemanticsRule.Binop}]{
-    \inferrule*[right=\ref{sec:SemanticsRule.ELit}]{}{ \evalexpr{\emptyenv, \vefour} \evalarrow \Normal(\nvint(4), \emptyenv) } \\\\
-    \inferrule*[right=\ref{sec:SemanticsRule.ELit}]{}{ \evalexpr{\emptyenv, \vefive} \evalarrow \Normal(\nvint(5), \emptyenv) } \\\\
-    \inferrule*[right=\ref{sec:SemanticsRule.BinopValues}]{}{\binoprel(\PLUS, \nvint(4), \nvint(5)) \evalarrow \nvint(9)}
+  \inferrule[\ref{sec:SemanticsRule.Binop}]{
+    \inferrule[\ref{sec:SemanticsRule.ELit}]{}{ \evalexpr{\emptyenv, \vefour} \evalarrow \Normal(\nvint(4), \emptyenv) } \\\\
+    \inferrule[\ref{sec:SemanticsRule.ELit}]{}{ \evalexpr{\emptyenv, \vefive} \evalarrow \Normal(\nvint(5), \emptyenv) } \\\\
+    \inferrule[\ref{sec:SemanticsRule.BinopValues}]{}{\binoprel(\PLUS, \nvint(4), \nvint(5)) \evalarrow \nvint(9)}
   }
   {
     \evalexpr{ \emptyenv, \vefourfive } \evalarrow
@@ -575,10 +575,10 @@ rule, along with the rule for binary operator (for multiplication), to evaluate 
 \end{mathpar}
 
 \begin{mathpar}
-  \inferrule*[right=\ref{sec:SemanticsRule.Binop}]{
+  \inferrule[\ref{sec:SemanticsRule.Binop}]{
     \evalexpr{ \emptyenv, \veonetwo } \evalarrow \Normal(\nvint(3), \emptyenv)\\
     \evalexpr{ \emptyenv, \vefourfive } \evalarrow \Normal(\nvint(9), \emptyenv)\\
-    \inferrule*[right=\ref{sec:SemanticsRule.BinopValues}]{}{\binoprel(\MUL, \nvint(3), \nvint(9)) \evalarrow \nvint(27)}
+    \inferrule[\ref{sec:SemanticsRule.BinopValues}]{}{\binoprel(\MUL, \nvint(3), \nvint(9)) \evalarrow \nvint(27)}
   }
   {
     \evalexpr{ \emptyenv, \EBinop(\MUL, \veonetwo, \vefourfive) } \evalarrow
