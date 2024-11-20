@@ -19,6 +19,34 @@
               relsize
               currfile
               make4ht
+
+              # pandoc deps
+              amsfonts
+              amsmath lm
+              unicode-math
+              iftex
+              listings
+              fancyvrb
+              # longtable
+              booktabs
+              multirow
+              # graphicx
+              bookmark
+              xcolor
+              soul
+              geometry
+              setspace
+              babel
+              natbib
+              biblatex
+              bibtex
+              biber
+              upquote
+              microtype
+              parskip
+              xurl
+              footnotehyper
+              # footnote
               ;
           };
       in
