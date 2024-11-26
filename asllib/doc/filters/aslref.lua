@@ -111,16 +111,24 @@ function CodeBlock(elem)
   local caption = elem.attributes.caption;
   if caption ~= nil then
     -- logging.temp("caption", elem.attributes.caption)
-    local i, j = string.find(caption, "\\label{.*}");
+    local i, j, groups = matchMacro(caption, "\\label{", 1);
     -- logging.temp("label", label)
     if i ~= nil and j ~= nil then
-      local label = string.sub(caption, i + 7, j - 1);
       elem.attributes.caption = string.sub(caption, 0, i - 1)
-      elem.identifier = label
+      elem.identifier = groups[1]
       -- logging.temp("updated", elem)
     end
   end
   return elem
+end
+
+--- somehow pandoc doubly expands "hyperlink" in tables
+--- recursively expand content
+local function subHyperlink(s)
+  return subMacros(s, "hyperlink", 2, function(groups)
+    local content = subHyperlink(groups[2])
+    return "\\href{#" .. groups[1] .. "}{" .. content .. "}"
+  end);
 end
 
 -- Convert inline math's \hyperlink to \href
@@ -128,11 +136,9 @@ end
 function Math(elem)
   local res = elem.text
   -- logging.temp("text", elem.text)
-  res = subMacros(res, "hyperlink", 2, function(groups)
-    return "\\href{#" .. groups[1] .. "}{" .. groups[2] .. "}"
-  end);
+  res = subHyperlink(res)
   res = subMacros(res, "hypertarget", 2, function(groups)
-    return groups[2] .. "\\label{" .. groups[1] .. "}"
+    return "{" .. groups[2] .. "\\label{" .. groups[1] .. "}}"
   end)
   -- logging.temp("res", res)
   elem.text = res
