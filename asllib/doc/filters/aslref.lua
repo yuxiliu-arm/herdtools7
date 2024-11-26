@@ -134,11 +134,12 @@ end
 -- Convert inline math's \hyperlink to \href
 -- , Math InlineMath "\\hyperlink{def-triangleq}{\\triangleq}"
 function Math(elem)
+  -- logging.temp("elem", elem)
   local res = elem.text
   -- logging.temp("text", elem.text)
   res = subHyperlink(res)
   res = subMacros(res, "hypertarget", 2, function(groups)
-    return "{" .. groups[2] .. "\\label{" .. groups[1] .. "}}"
+    return "\\cssId{" .. groups[1] .. "}{" .. groups[2] .. "}"
   end)
   -- logging.temp("res", res)
   elem.text = res
