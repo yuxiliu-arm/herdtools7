@@ -1,0 +1,58 @@
+\documentclass{book}
+\input{ASLmacros}
+% \renewcommand\color[1]{}
+\renewcommand\xlongrightarrow[1]{\xrightarrow{\qquad#1\qquad}}
+
+% inferrule override
+\newenvironment{mathpar}{\begin{displaymath}\begin{prooftree}}{\end{prooftree}\end{displaymath}}
+\renewcommand\inferrule[3][]{\AxiomC{$\displaylines{#2}$}\LeftLabel{#1}\UnaryInfC{$\displaylines{#3}$}}
+
+\renewcommand\and[0]{\end{prooftree}\end{displaymath}\begin{displaymath}\begin{prooftree}}
+% \renewcommand\hyperlink[2]{#2}
+% \renewcommand\hypertarget[2]{#2}
+
+\newcommand{\definitiontests}{../tests/ASLDefinition.t/}
+\newcommand{\syntaxtests}{../tests/ASLSyntaxReference.t/}
+\newcommand{\typingtests}{../tests/ASLTypingReference.t/}
+\newcommand{\semanticstests}{../tests/ASLSemanticsReference.t/}
+
+\begin{document}
+
+% \section{Example Specification 1}
+% \figref{spec1} shows
+
+% \begin{center}
+% \lstinputlisting[caption=Example specification 1\label{fi:spec1}]{\definitiontests/spec1.asl}
+% \end{center}
+
+% \begin{mathpar}
+% \inferrule[other]{
+%   \visone \neq \Top \vistwo \neq \Top \astlabel(\visone) \neq \astlabel(\vistwo)
+% }{
+%   \symintsetsubset(\tenv, \visone, \vistwo) \typearrow \overname{\False}{\vb}
+% }
+% \end{mathpar}
+
+% \hypertarget{def-triangleq}{}
+% We use $\triangleq$
+
+% \[
+%  A \triangleq B
+% \]
+
+For a set of Boolean values $A$:
+\[
+  \begin{array}{rcl}
+  \land A &\triangleq&
+  \begin{cases}
+    \True & \text{if all values in A are }\True\\
+    \False & \text{otherwise}
+  \end{cases}\\
+  \lor A &\triangleq&
+  \begin{cases}
+    \False & \text{if all values in A are }\False\\
+    \True & \text{otherwise}
+  \end{cases}\\
+\end{array}
+\]
+\end{document}
