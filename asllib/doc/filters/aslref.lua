@@ -4,6 +4,7 @@ local logging = require("logging")
 --- @param s string
 --- @param pattern string
 --- @param arity integer
+--- @return integer|nil, integer|nil, string[]
 local function matchMacro(s, pattern, arity)
   local i, j = string.find(s, pattern)
   local groups = {}
@@ -93,6 +94,19 @@ local function subMacros(s, name, arity, f)
   return res
 end
 
+--- highlight with tree-sitter
+--- @param s string
+--- @return string|nil
+local function highlightASL(s)
+  local wf = assert(io.open("temp.asl", "w"))
+  wf:write(s)
+  wf:close()
+  local rf = assert(io.popen("tree-sitter-asl-highlight < temp.asl", "r"))
+  local res = assert(rf:read("*a"))
+  rf:close()
+  return "<pre>" .. res .. "</pre>"
+end
+
 -- Extract listing labels
 -- , Div
 --     ( "" , [ "center" ] , [] )
@@ -109,17 +123,29 @@ end
 -- ]
 function CodeBlock(elem)
   local caption = elem.attributes.caption;
+  local id = nil
   if caption ~= nil then
     -- logging.temp("caption", elem.attributes.caption)
     local i, j, groups = matchMacro(caption, "\\label{", 1);
     -- logging.temp("label", label)
     if i ~= nil and j ~= nil then
-      elem.attributes.caption = string.sub(caption, 0, i - 1)
-      elem.identifier = groups[1]
+      caption = string.sub(caption, 0, i - 1)
+      id = groups[1]
       -- logging.temp("updated", elem)
     end
   end
-  return elem
+  local highlighted = highlightASL(elem.text)
+  if highlighted then
+    local contents = { pandoc.RawInline("html", highlighted) }
+    local span = pandoc.Span(contents)
+    span.attributes.caption = caption
+    span.identifier = id
+    return { span }
+  else
+    elem.attributes.caption = caption
+    elem.identifier = id
+    return elem
+  end
 end
 
 --- somehow pandoc doubly expands "hyperlink" in tables
