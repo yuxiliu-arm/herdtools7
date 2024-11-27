@@ -22,17 +22,17 @@
 % \section{Example Specification 1}
 % \figref{spec1} shows
 
-\begin{center}
-\lstinputlisting[caption=Example specification 1\label{fi:spec1}]{\definitiontests/spec1.asl}
-\end{center}
+% \begin{center}
+% \lstinputlisting[caption=Example specification 1\label{fi:spec1}]{\definitiontests/spec1.asl}
+% \end{center}
 
-% \begin{mathpar}
-% \inferrule[other]{
-%   \visone \neq \Top \vistwo \neq \Top \astlabel(\visone) \neq \astlabel(\vistwo)
-% }{
-%   \symintsetsubset(\tenv, \visone, \vistwo) \typearrow \overname{\False}{\vb}
-% }
-% \end{mathpar}
+\begin{mathpar}
+\inferrule[other]{
+  \visone \neq \Top \vistwo \neq \Top \astlabel(\visone) \neq \astlabel(\vistwo)
+}{
+  \symintsetsubset(\tenv, \visone, \vistwo) \typearrow \overname{\False}{\vb}
+}
+\end{mathpar}
 
 % \hypertarget{def-triangleq}{}
 % We use $\triangleq$
