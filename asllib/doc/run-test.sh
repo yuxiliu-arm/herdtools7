@@ -1,1 +1,1 @@
-PATH="/Users/yuxliu01/dev/tree-sitter-asl-highlight/target/release:$PATH" LUA_PATH='filters/?.lua' pandoc --standalone --mathjax -H public/header.html --filter ~/Downloads/pandoc-crossref -L filters/aslref.lua -o test.html test.tex # && open test.html
+PATH="/Users/yuxliu01/dev/tree-sitter-asl-highlight/target/release:$PATH" LUA_PATH='filters/?.lua' pandoc --standalone --mathjax -H public/header.html --filter ~/Downloads/pandoc-crossref -L filters/aslref.lua -o test test.tex -t chunkedhtml # && open test.html
