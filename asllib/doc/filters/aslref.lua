@@ -172,3 +172,45 @@ function Math(elem)
   -- subMacros(s)
   return elem
 end
+
+local function get_id(path, idMaps, elem)
+  -- logging.temp("elem", elem)
+  local attr = elem.attr
+  if attr then
+    local id = attr.identifier
+    if id and id ~= "" then
+      idMaps[id] = path
+    end
+  end
+end
+
+function Pandoc(doc)
+  local idMaps = {}
+  local chunks = pandoc.structure.split_into_chunks(doc, {
+        number_sections = true,
+        path_template = "%s-%i.html",
+      })
+      .chunks
+  for _, chunk in pairs(chunks) do
+    for _, block in pairs(chunk.contents) do
+      local get_id = function(elem) get_id(chunk.path, idMaps, elem) end
+      block:walk({ Inline = get_id, Block = get_id })
+    end
+  end
+  -- logging.temp("idMaps", idMaps)
+  local fixed = doc:walk({
+    Link = function(elem)
+      if elem.target and elem.target ~= "" then
+        local content = string.match(elem.target, "#(.*)")
+        if content then
+          local path = idMaps[content]
+          if path then
+            elem.target = path .. elem.target
+          end
+        end
+      end
+      return elem
+    end,
+  })
+  return fixed
+end

@@ -11,10 +11,6 @@ PATH="/Users/yuxliu01/dev/tree-sitter-asl-highlight/target/release:$PATH" \
   --css public/pandoc.css \
   --filter ~/Downloads/pandoc-crossref \
   -L filters/aslref.lua \
-  -t chunkedhtml \
-  -o out \
+  -o ASLReference.html \
   ASLReference.tex
 
-mkdir -p out/public
-
-cp public/pandoc.css out/public/pandoc.css
