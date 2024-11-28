@@ -198,19 +198,37 @@ function Pandoc(doc)
     end
   end
   -- logging.temp("idMaps", idMaps)
+  local fixRef = function(s)
+    if s and s ~= "" then
+      local content = string.match(s, "#(.*)")
+      if content then
+        local path = idMaps[content]
+        if path then
+          return path .. s
+        end
+      end
+    end
+    return nil
+  end
   local fixed = doc:walk({
     Link = function(elem)
-      if elem.target and elem.target ~= "" then
-        local content = string.match(elem.target, "#(.*)")
-        if content then
-          local path = idMaps[content]
-          if path then
-            elem.target = path .. elem.target
-          end
-        end
+      local newTarget = fixRef(elem.target)
+      if newTarget then
+        elem.target = newTarget
       end
       return elem
     end,
+    Math = function(elem)
+      local res = elem.text
+      res = subMacros(res, "href", 2, function(groups)
+        local newTarget = fixRef(groups[1]) or groups[1]
+        return "\\href{" .. newTarget .. "}{" .. groups[2] .. "}"
+      end)
+      -- logging.temp("res", res)
+      elem.text = res
+      -- subMacros(s)
+      return elem
+    end
   })
   return fixed
 end
