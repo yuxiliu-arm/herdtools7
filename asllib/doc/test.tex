@@ -7,7 +7,7 @@
 \newenvironment{mathpar}{\begin{displaymath}\begin{prooftree}}{\end{prooftree}\end{displaymath}}
 \renewcommand\inferrule[3][]{\AxiomC{$\displaylines{#2}$}\LeftLabel{#1}\UnaryInfC{$\displaylines{#3}$}}
 
-\renewcommand\and[0]{\end{prooftree}\end{displaymath}\begin{displaymath}\begin{prooftree}}
+% \renewcommand\and[0]{\end{prooftree}\end{displaymath}\begin{displaymath}\begin{prooftree}}
 % \renewcommand\hyperlink[2]{#2}
 % \renewcommand\hypertarget[2]{#2}
 
@@ -26,14 +26,69 @@
 % \lstinputlisting[caption=Example specification 1\label{fi:spec1}]{\definitiontests/spec1.asl}
 % \end{center}
 
-\begin{mathpar}
-\inferrule[other]{
-  \visone \neq \Top \vistwo \neq \Top \astlabel(\visone) \neq \astlabel(\vistwo)
-}{
-  \symintsetsubset(\tenv, \visone, \vistwo) \typearrow \overname{\False}{\vb}
-}
-\end{mathpar}
+% % inferrule example
+% \begin{mathpar}
+% \inferrule[other]{
+%   \visone \neq \Top \vistwo \neq \Top \astlabel(\visone) \neq \astlabel(\vistwo)
+% }{
+%   \symintsetsubset(\tenv, \visone, \vistwo) \typearrow \overname{\False}{\vb}
+% }
+% \end{mathpar}
 
+% % inferrule with `\and` inside an `inferrule`
+% \begin{mathpar}
+%   \inferrule{P_1 \and \ldots \and P_k}{C}
+% \end{mathpar}
+
+% % multiple inferrule separated by `\and`
+% \begin{mathpar}
+% \inferrule[empty]{}{ \addpolynomials(\emptylist) \typearrow \emptyfunc }
+% \and
+% \inferrule[one]{}{ \addpolynomials([ \vp ]) \typearrow \vp }
+% \end{mathpar}
+
+
+\begin{mathpar}
+  \inferrule[WriteToBitvector.Empty]{}
+  {
+    \writetobitvector(\emptylist, \nvbitvector(\emptylist), \nvbitvector(\emptylist)) \evalarrow \nvbitvector(\emptylist)
+  }
+  \and
+  \inferrule[WriteToBitvector.NonEmpty]{
+    \vs_n \ldots \vs_1 \eqdef \asbitvector(\src)\\
+    \vd_n \ldots \vd_1 \eqdef \asbitvector(\dst)\\
+    \slicestopositions(n, \slices) \evalarrow \positions \OrDynError\\\\
+    {\mathit{bit} = \lambda i \in 1..n.\left\{ \begin{array}{ll}
+     \vs_i & i \in \positions\\
+     \vd_i & \text{otherwise}
+    \end{array} \right\}\\
+    \vv\eqdef\nvbitvector(\mathit{bit}(n-1)\ldots \mathit{bit}(0))\\
+  }}
+  {
+    \writetobitvector(\slices, \src, \dst) \evalarrow \vv
+  }
+\end{mathpar}
+% \begin{prooftree}
+%   \AxiomC{$
+%     \texttt{s}_n \ldots \texttt{s}_1
+% \href{#def-eqdef}{:=}\href{#def-asbitvector}{\textit{as\_bitvector}}(\texttt{src})\\
+%     \texttt{d}_n \ldots \texttt{d}_1
+% \href{#def-eqdef}{:=}\href{#def-asbitvector}{\textit{as\_bitvector}}(\texttt{dst})\\
+%     \href{#def-slicestopositions}{\textit{slices\_to\_positions}}(n,
+% \texttt{slices})
+% \xrightarrow{\href{#def-evalrel}{\textsf{eval}}}\texttt{positions}\;\href{#def-terminateas}{\mathbin{/\mkern-6mu/}}\;\href{#def-errorconfig}{\texttt{\#DE}}\\\\
+%     {\mathit{bit} = \lambda i \in 1..n.\left\{ \begin{array}{ll}
+%      \texttt{s}_i & i \in \texttt{positions}\\
+%      \texttt{d}_i & \text{otherwise}
+%     \end{array} \right.}\\
+%     \texttt{v}\href{#def-eqdef}{:=}\href{#def-nvbitvector}{\texttt{Bitvector}}(\mathit{bit}(n-1)\ldots
+% \mathit{bit}(0))\\
+%   }$\LeftLabel{WriteToBitvector.NonEmpty}\UnaryInfC{$
+%     \href{#def-writetobitvector}{\textit{write\_to\_bitvector}}(\texttt{slices},
+% \texttt{src}, \texttt{dst})
+% \xrightarrow{\href{#def-evalrel}{\textsf{eval}}}\texttt{v}
+%   $}
+% \end{prooftree}
 % \hypertarget{def-triangleq}{}
 % We use $\triangleq$
 
