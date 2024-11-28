@@ -1,24 +1,14 @@
 \documentclass{book}
 \input{ASLmacros}
-% \renewcommand\color[1]{}
-\renewcommand\xlongrightarrow[1]{\xrightarrow{\qquad#1\qquad}}
 
 % inferrule override
 \newenvironment{mathpar}{\begin{displaymath}\begin{prooftree}}{\end{prooftree}\end{displaymath}}
 \renewcommand\inferrule[3][]{\AxiomC{$\displaylines{#2}$}\LeftLabel{#1}\UnaryInfC{$\displaylines{#3}$}}
 
-\renewcommand\and[0]{\end{prooftree}\end{displaymath}\begin{displaymath}\begin{prooftree}}
-
-% \renewenvironment{flalign}{\begin{math}\begin{aligned}}{\end{aligned}\end{math}}
-% \renewenvironment{flalign*}{\begin{math}\begin{aligned}}{\end{aligned}\end{math}}
-
 % not supported by mathjax
+\renewcommand\xlongrightarrow[1]{\xrightarrow{\qquad#1\qquad}}
 \renewcommand\mathsmaller[1]{#1}
 \renewcommand\textsc[1]{\textbf{#1}}
-
-% TODO: disable only in mathmode
-% \renewcommand\hyperlink[2]{#2}
-% \renewcommand\hypertarget[2]{#2}
 
 \renewcommand\nameref[1]{\ref{#1}}
 
