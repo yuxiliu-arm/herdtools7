@@ -6,18 +6,18 @@ local logging = require("logging")
 --- @param arity integer
 --- @return integer|nil, integer|nil, string[]
 local function matchMacro(s, pattern, arity)
-  local i, j = string.find(s, pattern)
+  local i, j = s:find(pattern)
   local groups = {}
   local captured = 0
   if i ~= nil then
     -- j is '{' after "\name"
     local l = j + 1
     local stack = 1
-    for r = l, string.len(s) do
+    for r = l, s:len() do
       if captured >= arity or l >= #s then
         break
       end
-      local c = string.sub(s, r, r)
+      local c = s:sub(r, r)
       -- logging.temp("c", c)
       -- logging.temp("stack", stack)
       if c == "{" then
@@ -29,7 +29,7 @@ local function matchMacro(s, pattern, arity)
         stack = stack - 1
         if stack == 0 then
           -- logging.temp("found", r)
-          table.insert(groups, string.sub(s, l, r - 1))
+          table.insert(groups, s:sub(l, r - 1))
           captured = captured + 1
           j = r
         end
@@ -58,13 +58,13 @@ local function matchMacros(s, name, arity)
     -- logging.temp("i", i)
     -- logging.temp("j", j)
     -- logging.temp("groups", groups)
-    -- logging.temp("matched", string.sub(rest, i, j))
-    -- logging.temp("matched", string.sub(s, i + cur, j + cur))
+    -- logging.temp("matched", rest:sub(i, j))
+    -- logging.temp("matched", s:sub(i + cur, j + cur))
     -- logging.temp("cur", cur)
     table.insert(res, { i + cur, j + cur, groups })
     cur = cur + j
     -- logging.temp("cur'", cur)
-    rest = string.sub(rest, j + 1)
+    rest = rest:sub(j + 1)
     -- logging.temp("rest", rest)
   end
   -- logging.temp("res", res)
@@ -83,14 +83,14 @@ local function subMacros(s, name, arity, f)
   -- logging.temp("name", name)
   for _, t in pairs(matchMacros(s, name, arity)) do
     local i, j, groups = t[1], t[2], t[3]
-    -- logging.temp("before", string.sub(s, cur, i - 1))
-    -- logging.temp("matched", string.sub(s, i, j))
-    -- logging.temp("after", string.sub(s, j + 1))
-    res = res .. string.sub(s, cur, i - 1) .. f(groups)
+    -- logging.temp("before", s:sub(cur, i - 1))
+    -- logging.temp("matched", s:sub(i, j))
+    -- logging.temp("after", s:sub(j + 1))
+    res = res .. s:sub(cur, i - 1) .. f(groups)
     -- logging.temp("here", cur)
     cur = j + 1
   end
-  res = res .. string.sub(s, cur)
+  res = res .. s:sub(cur)
   return res
 end
 
@@ -123,7 +123,7 @@ function CodeBlock(elem)
     local i, j, groups = matchMacro(caption, "\\label{", 1);
     -- logging.temp("label", label)
     if i ~= nil and j ~= nil then
-      caption = string.sub(caption, 0, i - 1)
+      caption = caption:sub(0, i - 1)
       id = groups[1]
       -- logging.temp("updated", elem)
     end
@@ -151,6 +151,29 @@ local function subHyperlink(s)
   end);
 end
 
+--- inside `\inferrule` replace `\and` with `\quad`
+local function subInferruleAnd(s)
+  local res = subMacros(s, "displaylines", 1, function(groups)
+    -- logging.temp("before", groups[1])
+    local res = groups[1]:gsub("\\and", "\\quad")
+    -- logging.temp("after", res)
+    return "\\displaylines{" .. res .. "}"
+  end)
+  return res
+end
+
+--- https://stackoverflow.com/a/76640488
+local function split(str, sep)
+  local res, from = {}, 1
+  repeat
+    local pos = str:find(sep, from)
+    table.insert(res, str:sub(from, pos and pos - 1))
+    from = pos and pos + #sep
+  until not from
+  return res
+end
+
+
 -- Convert inline math's \hyperlink to \href
 -- , Math InlineMath "\\hyperlink{def-triangleq}{\\triangleq}"
 function Math(elem)
@@ -161,10 +184,34 @@ function Math(elem)
   res = subMacros(res, "hypertarget", 2, function(groups)
     return "\\cssId{" .. groups[1] .. "}{" .. groups[2] .. "}"
   end)
-  -- logging.temp("res", res)
-  elem.text = res
-  -- subMacros(s)
-  return elem
+  if res:find("prooftree") then
+    res = subInferruleAnd(res)
+    -- logging.temp("res", res)
+    if res:find("\\and%s") then
+      -- `\and` must be outside of inferrule
+      local elems = {}
+      local chunks = split(res, "\\and")
+      for i, chunk in pairs(chunks) do
+        local text = chunk
+        if i ~= #chunks then
+          text = text .. "\\end{prooftree}"
+        end
+        if i ~= 1 then
+          text = "\\begin{prooftree}" .. text
+        end
+        table.insert(elems, pandoc.Math(pandoc.DisplayMath, text))
+      end
+      -- logging.temp("elems", elems)
+      return elems
+    else
+      elem.text = res
+      return elem
+    end
+  else
+    elem.text = res
+    -- subMacros(s)
+    return elem
+  end
 end
 
 local function get_id(path, idMaps, elem)
@@ -194,7 +241,7 @@ function Pandoc(doc)
   -- logging.temp("idMaps", idMaps)
   local fixRef = function(s)
     if s and s ~= "" then
-      local content = string.match(s, "#(.*)")
+      local content = s:match("#(.*)")
       if content then
         local path = idMaps[content]
         if path then
