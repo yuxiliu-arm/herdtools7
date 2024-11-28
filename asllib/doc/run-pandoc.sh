@@ -5,6 +5,7 @@ PATH="/Users/yuxliu01/dev/tree-sitter-asl-highlight/target/release:$PATH" \
   pandoc \
   --standalone \
   --toc \
+  --toc-depth 2 \
   --split-level 1 \
   --chunk-template '%i.html' \
   --mathjax \
