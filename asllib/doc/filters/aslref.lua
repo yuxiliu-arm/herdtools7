@@ -188,7 +188,7 @@ function Pandoc(doc)
   local idMaps = {}
   local chunks = pandoc.structure.split_into_chunks(doc, {
         number_sections = true,
-        path_template = "%s-%i.html",
+        path_template = "%i.html",
       })
       .chunks
   for _, chunk in pairs(chunks) do
