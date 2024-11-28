@@ -96,15 +96,9 @@ end
 
 --- highlight with tree-sitter
 --- @param s string
---- @return string|nil
+--- @return string
 local function highlightASL(s)
-  local wf = assert(io.open("temp.asl", "w"))
-  wf:write(s)
-  wf:close()
-  local rf = assert(io.popen("tree-sitter-asl-highlight < temp.asl", "r"))
-  local res = assert(rf:read("*a"))
-  rf:close()
-  return "<pre>" .. res .. "</pre>"
+  return "<pre>" .. pandoc.pipe("tree-sitter-asl-highlight", {}, s) .. "</pre>"
 end
 
 -- Extract listing labels
