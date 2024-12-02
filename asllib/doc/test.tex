@@ -186,4 +186,21 @@
 
 $\evalexprsef\empty$.
 
+\section{A}\label{sec:SemanticsRule.ELit}
+\section{B}\label{sec:SemanticsRule.Binop}
+\section{C}\label{sec:SemanticsRule.BinopValues}
+
+\begin{mathpar}
+  \inferrule[\ref{sec:SemanticsRule.Binop}]{
+    \begin{flalign*}
+      & \ref{sec:SemanticsRule.ELit} & \evalexpr{\emptyenv, \veone} \evalarrow \Normal(\nvint(1), \emptyenv) \\\\
+      & \ref{sec:SemanticsRule.ELit} & \evalexpr{\emptyenv, \vetwo} \evalarrow \Normal(\nvint(2), \emptyenv) \\\\
+      & \ref{sec:SemanticsRule.BinopValues} & \binoprel(\PLUS, \nvint(1), \nvint(2)) \evalarrow \nvint(3)
+    \end{flalign*}
+  }
+  {
+    \evalexpr{ \emptyenv, \veonetwo } \evalarrow
+    \Normal(\nvint(3), \emptyenv)
+  }
+\end{mathpar}
 \end{document}

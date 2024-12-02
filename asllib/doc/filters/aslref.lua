@@ -142,13 +142,20 @@ function CodeBlock(elem)
   end
 end
 
+--- rewrite \ref{A} in math to $\textrm{\href{#A}{A}}$
+local function subRef(s)
+  return subMacros(s, "ref", 1, function(groups)
+    return "\\textrm{\\href{#" .. groups[1] .. "}{" .. groups[1] .. "}}"
+  end)
+end
+
 --- somehow pandoc doubly expands "hyperlink" in tables
 --- recursively expand content
 local function subHyperlink(s)
   return subMacros(s, "hyperlink", 2, function(groups)
     local content = subHyperlink(groups[2])
     return "\\href{#" .. groups[1] .. "}{" .. content .. "}"
-  end);
+  end)
 end
 
 --- inside `\inferrule` replace `\and` with `\quad`
@@ -180,6 +187,7 @@ function Math(elem)
   -- logging.temp("elem", elem)
   local res = elem.text
   -- logging.temp("text", elem.text)
+  res = subRef(res)
   res = subHyperlink(res)
   res = subMacros(res, "hypertarget", 2, function(groups)
     return "\\cssId{" .. groups[1] .. "}{" .. groups[2] .. "}"
