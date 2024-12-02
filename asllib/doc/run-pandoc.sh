@@ -4,6 +4,7 @@ PATH="/Users/yuxliu01/dev/tree-sitter-asl-highlight/target/release:$PATH" \
   LUA_PATH='filters/?.lua' \
   pandoc \
   --standalone \
+  --wrap preserve \
   --toc \
   --toc-depth 2 \
   --split-level 1 \
