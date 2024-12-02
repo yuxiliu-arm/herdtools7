@@ -17,6 +17,9 @@
 \newcommand{\semanticstests}{../tests/ASLSemanticsReference.t/}
 \renewcommand\nameref[1]{\ref{#1}}
 
+% fix MathJax \textbackslash only available in text mode
+\renewcommand\textbackslash[0]{\unicode{x5C}}
+
 \begin{document}
 
 % \section{Example Specification 1}
@@ -47,27 +50,27 @@
 % \inferrule[one]{}{ \addpolynomials([ \vp ]) \typearrow \vp }
 % \end{mathpar}
 
+% \begin{mathpar}
+%   \inferrule[WriteToBitvector.Empty]{}
+%   {
+%     \writetobitvector(\emptylist, \nvbitvector(\emptylist), \nvbitvector(\emptylist)) \evalarrow \nvbitvector(\emptylist)
+%   }
+%   \and
+%   \inferrule[WriteToBitvector.NonEmpty]{
+%     \vs_n \ldots \vs_1 \eqdef \asbitvector(\src)\\
+%     \vd_n \ldots \vd_1 \eqdef \asbitvector(\dst)\\
+%     \slicestopositions(n, \slices) \evalarrow \positions \OrDynError\\\\
+%     {\mathit{bit} = \lambda i \in 1..n.\left\{ \begin{array}{ll}
+%      \vs_i & i \in \positions\\
+%      \vd_i & \text{otherwise}
+%     \end{array} \right\}\\
+%     \vv\eqdef\nvbitvector(\mathit{bit}(n-1)\ldots \mathit{bit}(0))\\
+%   }}
+%   {
+%     \writetobitvector(\slices, \src, \dst) \evalarrow \vv
+%   }
+% \end{mathpar}
 
-\begin{mathpar}
-  \inferrule[WriteToBitvector.Empty]{}
-  {
-    \writetobitvector(\emptylist, \nvbitvector(\emptylist), \nvbitvector(\emptylist)) \evalarrow \nvbitvector(\emptylist)
-  }
-  \and
-  \inferrule[WriteToBitvector.NonEmpty]{
-    \vs_n \ldots \vs_1 \eqdef \asbitvector(\src)\\
-    \vd_n \ldots \vd_1 \eqdef \asbitvector(\dst)\\
-    \slicestopositions(n, \slices) \evalarrow \positions \OrDynError\\\\
-    {\mathit{bit} = \lambda i \in 1..n.\left\{ \begin{array}{ll}
-     \vs_i & i \in \positions\\
-     \vd_i & \text{otherwise}
-    \end{array} \right\}\\
-    \vv\eqdef\nvbitvector(\mathit{bit}(n-1)\ldots \mathit{bit}(0))\\
-  }}
-  {
-    \writetobitvector(\slices, \src, \dst) \evalarrow \vv
-  }
-\end{mathpar}
 % \begin{prooftree}
 %   \AxiomC{$
 %     \texttt{s}_n \ldots \texttt{s}_1
@@ -161,5 +164,9 @@
 % \hline
 % \end{tabular}
 % \end{center}
+
+\[
+  \texttt{\textbackslash\;\;n}
+\]
 
 \end{document}
