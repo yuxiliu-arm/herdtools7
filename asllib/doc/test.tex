@@ -169,12 +169,17 @@
 %   \texttt{\textbackslash\;\;n}
 % \]
 
-\[
+% \[
 
-    {\mathit{bit} = \lambda i \in 1..n.\left\{ \begin{array}{ll}
-     \vs_i & i \in \positions\\
-     \vd_i & \text{otherwise}
-    \end{array} \right.}
-\]
+%     {\mathit{bit} = \lambda i \in 1..n.\left\{ \begin{array}{ll}
+%      \vs_i & i \in \positions\\
+%      \vd_i & \text{otherwise}
+%     \end{array} \right.}
+% \]
+
+\begin{flalign*}
+  % & & \ASTComment{Constraints that may be assigned to integer types.}  \\
+  \constraintkind \derives\ & \unconstrained
+\end{flalign*}
 
 \end{document}
