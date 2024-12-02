@@ -20,6 +20,8 @@
 % fix MathJax \textbackslash only available in text mode
 \renewcommand\textbackslash[0]{\unicode{x5C}}
 
+\newcommand\empty{}
+
 \begin{document}
 
 % \section{Example Specification 1}
@@ -177,9 +179,11 @@
 %     \end{array} \right.}
 % \]
 
-\begin{flalign*}
-  % & & \ASTComment{Constraints that may be assigned to integer types.}  \\
-  \constraintkind \derives\ & \unconstrained
-\end{flalign*}
+% \begin{flalign*}
+%   % & & \ASTComment{Constraints that may be assigned to integer types.}  \\
+%   \constraintkind \derives\ & \unconstrained
+% \end{flalign*}
+
+$\evalexprsef\empty$.
 
 \end{document}
