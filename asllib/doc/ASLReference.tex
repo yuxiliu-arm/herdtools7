@@ -12,6 +12,9 @@
 
 \renewcommand\nameref[1]{\ref{#1}}
 
+% fix MathJax \textbackslash only available in text mode
+\renewcommand\textbackslash[0]{\unicode{x5C}}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Macros for including code snippets from the ASLRef implementation
 \input{ASLTypingLines}
