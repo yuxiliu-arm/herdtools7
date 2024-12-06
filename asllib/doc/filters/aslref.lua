@@ -222,12 +222,23 @@ function Math(elem)
   end
 end
 
-local function get_id(path, idMaps, elem)
+local function getId(path, idMaps, elem)
   -- logging.temp("elem", elem)
   local attr = elem.attr
   if attr then
     local id = attr.identifier
     if id and id ~= "" then
+      idMaps[id] = path
+    end
+  end
+end
+
+local function getMathId(path, idMaps, elem)
+  local text = elem.text
+  if text then
+    for _, t in pairs(matchMacros(text, "cssId", 1)) do
+      local id = t[3][1]
+      -- logging.temp("cssId", id)
       idMaps[id] = path
     end
   end
@@ -242,8 +253,9 @@ function Pandoc(doc)
       .chunks
   for _, chunk in pairs(chunks) do
     for _, block in pairs(chunk.contents) do
-      local get_id = function(elem) get_id(chunk.path, idMaps, elem) end
-      block:walk({ Inline = get_id, Block = get_id })
+      local getIdFilter = function(elem) getId(chunk.path, idMaps, elem) end
+      local getMathIdFilter = function(elem) getMathId(chunk.path, idMaps, elem) end
+      block:walk({ Inline = getIdFilter, Block = getIdFilter, Math = getMathIdFilter })
     end
   end
   -- logging.temp("idMaps", idMaps)
