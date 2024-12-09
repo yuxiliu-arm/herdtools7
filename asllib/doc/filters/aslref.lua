@@ -247,7 +247,7 @@ end
 -- https://github.com/jgm/pandoc-website/pull/50
 -- Adds anchor links to headings with IDs.
 function Header(h)
-  if h.identifier ~= '' then
+  if h.level ~= 1 and h.identifier ~= '' then
     -- an empty link to this header
     local anchor_link = pandoc.Link(
       {},                                            -- content
