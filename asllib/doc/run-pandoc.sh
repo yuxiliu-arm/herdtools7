@@ -21,3 +21,4 @@ PATH="/Users/yuxliu01/dev/tree-sitter-asl-highlight/target/release:$PATH" \
 mkdir -p out/public
 
 cp public/pandoc.css out/public/pandoc.css
+cp public/search.js out/public/search.js
