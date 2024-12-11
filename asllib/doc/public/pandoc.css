@@ -281,6 +281,26 @@ h6:hover > .anchor::before {
 }
 /* end: heading anchor links */
 
+/* search bar */
+
+#searchDiv {
+  display: grid;
+  grid-template-columns: 75% 25%;
+  margin-bottom: 12px;
+}
+
+#searchBox {
+  font-size: large;
+  padding: 0 6px;
+}
+
+#searchButton {
+  font-size: large;
+  padding: 6px 10px;
+}
+
+/* search bar end */
+
 @media only screen and (min-width: 480px) {
   body {
     font-size: 14px;
