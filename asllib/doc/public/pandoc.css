@@ -286,10 +286,11 @@ h6:hover > .anchor::before {
 /* side bar */
 
 #searchBox {
-  font-size: 14px;
   padding: 3px 6px;
   width: 90%;
   margin-bottom: 10px;
+  position: absolute;
+  z-index: 1;
 }
 
 /* https://github.com/jgm/pandoc-website/blob/8c5fee08486cd5e6511579766313848f06ac3f2c/css/site.css#L72-L133 */
@@ -320,8 +321,14 @@ h6:hover > .anchor::before {
 #TOC code {
   font-size: 10pt;
 }
+#TOC > span {
+  position: relative;
+  top: 2em;
+}
 #TOC > ul {
   list-style: none;
+  position: relative;
+  top: 2em;
 }
 #TOC > ul {
   margin-left: 0;
@@ -368,17 +375,24 @@ main {
 
 /* side bar end */
 
-/* default hidden, switch to sitenav when too small */
+/* default hidden, switch to sitenav when width too small */
 #sitenav {
   display: none;
   position: fixed;
   background: #eff5f4;
   z-index: 1;
   margin-right: 10px;
+  height: 4em;
 }
 
+/* hide new lines */
 #sitenav br {
   display: none;
+}
+
+.sitenav {
+  position: relative;
+  top: 2em;
 }
 
 /* @media only screen and (min-width: 480px) { */
