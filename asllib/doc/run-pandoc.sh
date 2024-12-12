@@ -9,6 +9,7 @@ PATH="/Users/yuxliu01/dev/tree-sitter-asl-highlight/target/release:$PATH" \
   --toc-depth 2 \
   --split-level 1 \
   --chunk-template '%i.html' \
+  --template 'public/template.html' \
   --mathjax \
   --include-in-header public/header.html \
   --css public/pandoc.css \
@@ -20,5 +21,5 @@ PATH="/Users/yuxliu01/dev/tree-sitter-asl-highlight/target/release:$PATH" \
 
 mkdir -p out/public
 
-cp public/pandoc.css out/public/pandoc.css
-cp public/search.js out/public/search.js
+cp public/pandoc.css out/public
+cp public/site.js out/public
