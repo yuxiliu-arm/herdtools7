@@ -13,11 +13,11 @@ html {
 body {
   color: #444;
   font-family: Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman', serif;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.5;
   padding: 1em;
   margin: auto;
-  max-width: 42em;
+  max-width: 62em;
   background: #fefefe;
 }
 
@@ -84,6 +84,8 @@ h4, h5, h6 {
 
 h1 {
   font-size: 2.5em;
+  margin-top: 0;
+  text-align: center;
 }
 
 h2 {
@@ -281,36 +283,128 @@ h6:hover > .anchor::before {
 }
 /* end: heading anchor links */
 
-/* search bar */
-
-#searchDiv {
-  display: grid;
-  grid-template-columns: 75% 25%;
-  margin-bottom: 12px;
-}
+/* side bar */
 
 #searchBox {
-  font-size: large;
-  padding: 0 6px;
+  font-size: 14px;
+  padding: 3px 6px;
+  width: 90%;
 }
 
-#searchButton {
-  font-size: large;
-  padding: 6px 10px;
+/* https://github.com/jgm/pandoc-website/blob/8c5fee08486cd5e6511579766313848f06ac3f2c/css/site.css#L72-L133 */
+
+.container {
+  display: flex;
 }
 
-/* search bar end */
+#sidebar {
+  order: 2;
+  position: sticky;
+  top: 2rem;
+  /* max-width: 20em; */
+  /* min-width: 12em; */
+  align-self: baseline;
+  background: transparent;
+  margin-left: 20px;
+  z-index: 1;
+}
 
-@media only screen and (min-width: 480px) {
-  body {
-    font-size: 14px;
+#TOC {
+  margin-top: 1em;
+  margin-left: 2rem;
+  height: 80vh;
+  overflow-y: scroll;
+  font-size: 11pt;
+}
+#TOC code {
+  font-size: 10pt;
+}
+#TOC > ul {
+  list-style: none;
+}
+#TOC > ul {
+  margin-left: 0;
+  margin-top: 4pt;
+}
+#TOC li {
+  padding-bottom: 3pt;
+  padding-top: 3pt;
+}
+#TOC ul {
+  padding-left: 1em;
+}
+#TOC ul > li {
+  position: relative;
+}
+#TOC .toggle {
+  cursor: pointer;
+  position: absolute;
+  left: -26px;
+  top: -2px;
+  padding: 2px 10px;
+  color: #337ab7;
+}
+#TOC .toggle:hover {
+  opacity: 0.5;
+}
+
+/* not actually used
+#tocbtn {
+  width: 100%;
+  text-align: right;
+  font-size: 11pt;
+  padding-left: 1em;
+}
+*/
+
+main {
+  position: relative; /* needed for the anchor links to work */
+  order: 1;
+  max-width: 48em;
+  min-width: 300px;
+  padding-bottom: 60em; /* ensure that any anchor can be at top */
+}
+
+/* side bar end */
+
+/* default hidden, switch to sitenav when too small */
+#sitenav {
+  display: none;
+  position: fixed;
+  background: #eff5f4;
+  z-index: 1;
+  margin-right: 10px;
+}
+
+#sitenav br {
+  display: none;
+}
+
+/* @media only screen and (min-width: 480px) { */
+/*   body { */
+/*     font-size: 14px; */
+/*   } */
+/* } */
+/* @media only screen and (min-width: 768px) { */
+/*   body { */
+/*     font-size: 16px; */
+/*   } */
+/* } */
+@media only screen and (max-width: 768px) {
+  h1 {
+    margin-top: 80px;
+  }
+  #sitenav {
+    display: block;
+  }
+  #sidebar {
+    display: none;
+  }
+  #searchBox {
+    padding: 5px 15px;
   }
 }
-@media only screen and (min-width: 768px) {
-  body {
-    font-size: 16px;
-  }
-}
+
 @media print {
   * {
     background: transparent !important;
