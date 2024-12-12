@@ -36,12 +36,12 @@ $include-before$
 $endfor$
 <!-- https://github.com/jgm/pandoc-website/blob/8c5fee08486cd5e6511579766313848f06ac3f2c/template.html -->
 $if(toc)$
-  <input type="text" id="searchBox" placeholder="Search…"></input>
+  <input type="text" id="searchBox" placeholder="Search…" style="position: relative; font-size: large;"></input>
   $if(toc-title)$
     <h2 id="$idprefix$toc-title">$toc-title$</h2>
   $endif$
   <header id="title-block-header">
-  <h1 class="title">$title$</h1>
+  <h1 class="title" style="padding-top: 50px">$title$</h1>
   $if(subtitle)$
     <p class="subtitle">$subtitle$</p>
   $endif$
