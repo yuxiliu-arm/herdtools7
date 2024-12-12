@@ -14,14 +14,16 @@ function issueSearch() {
 }
 
 onload = () => {
+  const currentTitle = document.querySelector("h1");
+  const id = currentTitle ? currentTitle.id : null;
   // https://github.com/jgm/pandoc-website/blob/8c5fee08486cd5e6511579766313848f06ac3f2c/js/site.js#L2-L23
-  document.querySelectorAll("#TOC > ul > li").forEach(function(li) {
+  document.querySelectorAll("#TOC > ul > li").forEach(function (li) {
     if (li.children.length > 1) {
-      var toggle = document.createElement("span");
+      const toggle = document.createElement("span");
       toggle.className = "toggle";
       toggle.innerHTML = "▸";
-      toggle.onclick = function() {
-        var sublist = li.getElementsByTagName("ul")[0];
+      toggle.onclick = function () {
+        const sublist = li.getElementsByTagName("ul")[0];
         if (sublist) {
           if (sublist.style.display === "none") {
             sublist.style.display = "block";
@@ -33,6 +35,14 @@ onload = () => {
         }
       };
       li.prepend(toggle);
+      if (id) {
+        // expand current chapter's toc
+        const anchor = li.getElementsByTagName("a")[0];
+        const href = anchor ? anchor.href.split("#").pop() : undefined;
+        if (href && href === id) {
+          return;
+        }
+      }
       toggle.click();
     }
   });
