@@ -36,67 +36,67 @@ $include-before$
 $endfor$
 <!-- https://github.com/jgm/pandoc-website/blob/8c5fee08486cd5e6511579766313848f06ac3f2c/template.html -->
 $if(toc)$
-  <input type="text" id="searchBox" placeholder="Search…" style="position: relative; font-size: large;"></input>
-  $if(toc-title)$
-    <h2 id="$idprefix$toc-title">$toc-title$</h2>
-  $endif$
-  <header id="title-block-header">
-  <h1 class="title" style="padding-top: 50px">$title$</h1>
-  $if(subtitle)$
-    <p class="subtitle">$subtitle$</p>
-  $endif$
-  $for(author)$
-    <p class="author">$author$</p>
-  $endfor$
-  $if(date)$
-    <p class="date">$date$</p>
-  $endif$
-  $if(abstract)$
-    <div class="abstract">
-    <div class="abstract-title">$abstract-title$</div>
-      $abstract$
-    </div>
-  $endif$
-  </header>
-  $table-of-contents$
+<input type="text" id="searchBox" placeholder="Search…" style="position: relative; font-size: large;"></input>
+$if(toc-title)$
+<h2 id="$idprefix$toc-title">$toc-title$</h2>
+$endif$
+<header id="title-block-header">
+<h1 class="title" style="padding-top: 50px">$title$</h1>
+$if(subtitle)$
+<p class="subtitle">$subtitle$</p>
+$endif$
+$for(author)$
+<p class="author">$author$</p>
+$endfor$
+$if(date)$
+<p class="date">$date$</p>
+$endif$
+$if(abstract)$
+<div class="abstract">
+<div class="abstract-title">$abstract-title$</div>
+$abstract$
+</div>
+$endif$
+</header>
+$table-of-contents$
 $else$
-  <!-- https://github.com/jgm/pandoc/blob/d04e490f1d63e8f459bd9d1875febab2bfe59583/data/templates/default.chunkedhtml#L40-L65 -->
-  <nav id="sitenav">
-    <div class="sitenav">
-      <span class="navlink">
-        $if(previous.url)$
-          <span class="navlink-label">←</span> <a href="$previous.url$" accesskey="p" rel="previous">$previous.title$</a>
-        $endif$
-      </span>
-      <span class="navlink">
-        $if(top)$
-          <span class="navlink-label">↑</span> <a href="$top.url$" accesskey="t" rel="top">$top.title$</a>
-        $endif$
-      </span>
-      <span class="navlink">
-        $if(next.url)$
-          <span class="navlink-label">→</span> <a href="$next.url$" accesskey="n" rel="next">$next.title$</a>
-        $endif$
-      </span>
-    </div>
-  </nav>
-  <div class="container">
-      <div id="sidebar">
-        <nav id="$idprefix$TOC" role="doc-toc">
-          <input type="text" id="searchBox" placeholder="Search…"></input>
-          $if(toc-title)$
-            <h2 id="$idprefix$toc-title">$toc-title$</h2>
-          $endif$
-          <span class="navlink">
-            <a href="$top.url$" accesskey="t" rel="top">$top.title$</a>
-          </span>
-          $table-of-contents$
-        </nav>
-      </div>
-    <main>
-      $body$
-    </main>
-  </div>
+<!-- https://github.com/jgm/pandoc/blob/d04e490f1d63e8f459bd9d1875febab2bfe59583/data/templates/default.chunkedhtml#L40-L65 -->
+<nav id="sitenav">
+<div class="sitenav">
+<span class="navlink">
+$if(previous.url)$
+<span class="navlink-label">←</span> <a href="$previous.url$" accesskey="p" rel="previous">$previous.title$</a>
+$endif$
+</span>
+<span class="navlink">
+$if(top)$
+<span class="navlink-label">↑</span> <a href="$top.url$" accesskey="t" rel="top">$top.title$</a>
+$endif$
+</span>
+<span class="navlink">
+$if(next.url)$
+<span class="navlink-label">→</span> <a href="$next.url$" accesskey="n" rel="next">$next.title$</a>
+$endif$
+</span>
+</div>
+</nav>
+<div class="container">
+<div id="sidebar">
+<nav id="$idprefix$TOC" role="doc-toc">
+<input type="text" id="searchBox" placeholder="Search…"></input>
+$if(toc-title)$
+<h2 id="$idprefix$toc-title">$toc-title$</h2>
+$endif$
+<span class="navlink">
+<a href="$top.url$" accesskey="t" rel="top">$top.title$</a>
+</span>
+$table-of-contents$
+</nav>
+</div>
+<main>
+$body$
+</main>
+</div>
 $endif$
 $for(include-after)$
 $include-after$
