@@ -3,11 +3,11 @@ function issueSearch() {
   if (searchBox) {
     const query = searchBox.value;
     const url = new URL(
-      "http://acyclic.cambridge.arm.com/test-search-the-architecture",
+      "http://acyclic.cambridge.arm.com/search-the-architecture",
     );
     const searchParams = url.searchParams;
     searchParams.set("q", encodeURIComponent(query));
-    searchParams.set("f", encodeURIComponent("as"));
+    searchParams.set("f", encodeURIComponent("aslref"));
     url.search = searchParams.toString();
     window.open(url.href, "_blank");
   }
