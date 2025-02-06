@@ -1,0 +1,7 @@
+\begin{prooftree}
+\AxiomC{$\displaylines{
+  (\texttt{op}, \texttt{l}) \not\in \href{primitive-operations.html#def-unopsignatures}{\textit{unop\_signatures}}
+}$}\LeftLabel{error}\UnaryInfC{$\displaylines{
+  \href{primitive-operations.html#def-unopliterals}{\textit{unop\_literals}}(\texttt{op}, \href{formal-system.html#def-astlabel}{\textit{ast\_label}}(\texttt{l})) \xrightarrow{\href{type-inference-and-type-checking-definitions.html#def-annotaterel}{\textsf{type}}}\href{type-inference-and-type-checking-definitions.html#def-typeerror}{\textsf{TypeError}}(\texttt{TypeMismatch})
+}$}
+\end{prooftree}

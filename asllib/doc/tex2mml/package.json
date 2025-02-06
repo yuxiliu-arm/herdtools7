@@ -1,0 +1,19 @@
+{
+  "name": "tex2mml",
+  "version": "1.0.0",
+  "main": "tex2mml.ts",
+  "type": "commonjs",
+  "scripts": {
+    "run": "npx tsx tex2mml.ts"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "description": "",
+  "dependencies": {
+    "mathjax-full": "^3.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.8.2",
+    "tsx": "^4.19.2"
+  }
+}
