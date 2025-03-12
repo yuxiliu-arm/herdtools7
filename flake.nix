@@ -59,6 +59,7 @@
               graphviz
               ghostscript
               tex
+              python3
             ] ++
             pkgs.lib.optionals pkgs.stdenv.isDarwin
               [ pkgs.darwin.apple_sdk.frameworks.CoreServices ];
