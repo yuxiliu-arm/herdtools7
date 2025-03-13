@@ -3436,7 +3436,7 @@ module Make
             in
             write_reg_dest reg_rgsr_el1 new_rgsr_el1 ii
           in
-          let>= rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in (* TODO: use [int64] *)
+          let<>= rgsr_el1 = read_reg_ord reg_rgsr_el1 ii in (* TODO: use [int64] *)
           (* NOTE: reads & writes to RGSR_EL1 appear in program order, see its
              system register configuration. Therefore, the value value is lifted
              to OCaml to calculate the next seed and tag with one read and one
@@ -3450,17 +3450,23 @@ module Make
           let rtag = aarch64_choose_non_excluded_tag start_tag offset exclude in
           let tag = V.Val (Constant.Tag ("t" ^ string_of_int rtag)) in
           let>= v = M.op Op.SetTag vn tag in
-          let>= rdv = write_reg_dest rd v ii in
-          let>= new_rgsr_el1 = set_rgsr_el1 ~seed ~tag:rtag rgsr_el1 in
+          let>= rdv = write_reg_dest rd v ii
+          and* new_rgsr_el1 = set_rgsr_el1 ~seed ~tag:rtag rgsr_el1 in
           M.unitT [(rd, rdv); (reg_rgsr_el1, new_rgsr_el1)]
         in
+        let>= is_random = M.bitT gcr_el1 (V.intToV 16) in
         let>= bds =
-          let<>= _ = mvn
-          and* _ = mvm
-          and* _ = mgcr_el1 in
-          do_choice "GCR_EL1.RRND"
-            (mgcr_el1 >>= fun _ -> M.bitT gcr_el1 (V.intToV 16))
-            (random ())
+          M.choiceT
+            is_random
+            begin
+              let<>= _ = mvn
+              and* _ = mvm
+              and* _ = mgcr_el1 in
+              do_choice "GCR_EL1.RRND"
+                (mgcr_el1 >>= fun _ -> M.bitT gcr_el1 (V.intToV 16))
+                (random ())
+                ((*impossible*) M.unitT [])
+            end
             (pseudorandom ())
         in
         M.unitT (B.Next bds)
