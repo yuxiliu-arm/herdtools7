@@ -69,8 +69,8 @@ else
 
   # https://stackoverflow.com/questions/27018963/render-dot-script-with-multiple-graphs-to-pdf-one-graph-per-page
 
-  dot -Tps2 "out/$TEST_NAME.dot" > "out/$TEST_NAME.ps"
-  ps2pdf "out/$TEST_NAME.ps" "out/$TEST_NAME.pdf"
+  dot -Tps2 -Gsize=10,30! "out/$TEST_NAME.dot" > "out/$TEST_NAME.ps"
+  ps2pdf -dPDFFitPage "out/$TEST_NAME.ps" "out/$TEST_NAME.pdf"
 
   if [[ $OPEN = true ]]; then
     open -a Skim "out/$TEST_NAME.pdf"

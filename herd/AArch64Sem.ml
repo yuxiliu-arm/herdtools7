@@ -3344,6 +3344,14 @@ module Make
             (commit_pred_txt (Some text) ii)
             (fun () -> M.choiceT cond m1 m2)
         in
+        let do_choice' cond_name mcond m1 m2 =
+          let>= cond = mcond in
+          let text = Printf.sprintf "%s(%s)" cond_name (V.pp_v cond) in
+          M.bind_control_set_data_input_first
+          (* M.(>>*=) *)
+            (commit_pred_txt (Some text) ii)
+            (fun () -> M.choiceT cond m1 m2)
+        in
         let is_ones_16 bits = M.op Op.And bits ffff >>= M.op Op.Eq ffff in
         let choose_random_non_excluded_tag exclude k =
           let do_irg n =
@@ -3462,11 +3470,19 @@ module Make
               let<>= _ = mvn
               and* _ = mvm in
               do_choice "GCR_EL1.RRND"
-                (mgcr_el1 >>= fun _ -> M.bitT gcr_el1 (V.intToV 16))
+                (mgcr_el1 >>= fun _ -> M.unitT is_random)
                 (random ())
                 ((*impossible*) M.unitT [])
             end
-            (pseudorandom ())
+            begin
+              let<>= _ = mvn
+              and* _ = mvm
+              and* _ = mgcr_el1 in
+              do_choice' "GCR_EL1.RRND"
+                (mgcr_el1 >>= fun _ -> M.unitT is_random)
+                ((*impossible*) M.unitT [])
+                (pseudorandom ())
+            end
         in
         M.unitT (B.Next bds)
         (* let>= bds = *)
