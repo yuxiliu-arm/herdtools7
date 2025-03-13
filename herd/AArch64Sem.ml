@@ -3460,8 +3460,7 @@ module Make
             is_random
             begin
               let<>= _ = mvn
-              and* _ = mvm
-              and* _ = mgcr_el1 in
+              and* _ = mvm in
               do_choice "GCR_EL1.RRND"
                 (mgcr_el1 >>= fun _ -> M.bitT gcr_el1 (V.intToV 16))
                 (random ())
