@@ -132,7 +132,7 @@ module type S =
     (* Same as bind_ctrldata, all output from first argument *)
     val (>>**==) : 'a t -> ('a -> 'b t) -> 'b t
 
-    (* Identical control dep only, all output from firtst argument *)
+    (* Identical control dep only, all output from first argument *)
     val bind_ctrl_first_outputs : 'a t -> ('a -> 'b t) -> 'b t
 
     (* Same as [>>=] but with order deps instead of data between the arguments. *)
