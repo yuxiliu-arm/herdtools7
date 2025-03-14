@@ -3336,19 +3336,10 @@ module Make
         let reg_rgsr_el1 = AArch64Base.(SysReg RGSR_EL1) in
         let ffff = V.intToV 0xFFFF in
         (* if then else *)
-        let do_choice cond_name mcond m1 m2 =
+        let do_choice bind_ctrl cond_name mcond m1 m2 =
           let>= cond = mcond in
           let text = Printf.sprintf "%s(%s)" cond_name (V.pp_v cond) in
-          (* M.bind_control_set_data_input_first *)
-          M.(>>*=)
-            (commit_pred_txt (Some text) ii)
-            (fun () -> M.choiceT cond m1 m2)
-        in
-        let do_choice' cond_name mcond m1 m2 =
-          let>= cond = mcond in
-          let text = Printf.sprintf "%s(%s)" cond_name (V.pp_v cond) in
-          M.bind_control_set_data_input_first
-          (* M.(>>*=) *)
+          bind_ctrl 
             (commit_pred_txt (Some text) ii)
             (fun () -> M.choiceT cond m1 m2)
         in
@@ -3415,16 +3406,12 @@ module Make
         let>= (gcr_el1, mgcr_el1) = M.delay (read_reg_ord reg_gcr_el1 ii)
         and* (vn, mvn) = M.delay (read_reg_ord rn ii)
         and* (vm, mvm) = M.delay (read_reg_ord rm ii) in
-        (* let>= exclude = M.(bind_data_to_output) mvm (fun _ -> M.op Op.And gcr_el1 ffff >>= M.op Op.Or vm) in *)
         let>= exclude = M.op Op.And gcr_el1 ffff >>= M.op Op.Or vm in
         let random () =
           let rtag k =
             let>= is_ones_exclude = is_ones_16 exclude in
-            (* M.bind_data_to_output mgcr_el1 begin fun _ -> *)
-            (* do_choice "(IsOnes(exclude))" *)
             M.choiceT
               is_ones_exclude
-            (* (mgcr_el1 >>= fun _ -> is_ones_16 exclude) *)
               (k 0)
               (choose_random_non_excluded_tag exclude k)
           in
@@ -3469,7 +3456,8 @@ module Make
             begin
               let<>= _ = mvn
               and* _ = mvm in
-              do_choice "GCR_EL1.RRND"
+              do_choice M.(>>*=)
+                "GCR_EL1.RRND"
                 (mgcr_el1 >>= fun _ -> M.unitT is_random)
                 (random ())
                 ((*impossible*) M.unitT [])
@@ -3478,33 +3466,14 @@ module Make
               let<>= _ = mvn
               and* _ = mvm
               and* _ = mgcr_el1 in
-              do_choice' "GCR_EL1.RRND"
+              do_choice M.bind_control_set_data_input_first
+                "GCR_EL1.RRND"
                 (mgcr_el1 >>= fun _ -> M.unitT is_random)
                 ((*impossible*) M.unitT [])
                 (pseudorandom ())
             end
         in
         M.unitT (B.Next bds)
-        (* let>= bds = *)
-        (*   let k (rtag, seed_rgsr_el1_opt) = *)
-        (*     M.( >>:: ) *)
-        (*       begin *)
-        (*         let tag = V.Val (Constant.Tag ("t" ^ string_of_int rtag)) in *)
-        (*         let>= v = M.op Op.SetTag vn tag in *)
-        (*         let>= rdv = write_reg_dest rd v ii in *)
-        (*         M.unitT (rd, rdv) *)
-        (*       end *)
-        (*       begin *)
-        (*         match seed_rgsr_el1_opt with *)
-        (*         | None -> M.unitT [] *)
-        (*         | Some (seed, rgsr_el1) -> *)
-        (*           let>= new_rgsr_el1 = set_rgsr_el1 ~seed ~tag:rtag rgsr_el1 in *)
-        (*           M.unitT [(reg_rgsr_el1, new_rgsr_el1)] *)
-        (*       end *)
-        (*   in *)
-        (*   gen_rtag k *)
-        (* in *)
-        (* M.unitT (B.Next bds) *)
 
 (*********************)
 (* Instruction fetch *)
