@@ -11,7 +11,7 @@ else
 	J=$(shell nproc)
 endif
 
-REGRESSION_TEST_MODE = test
+REGRESSION_TEST_MODE ?= test
 # REGRESSION_TEST_MODE = promote
 # REGRESSION_TEST_MODE = show
 
