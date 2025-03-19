@@ -1150,6 +1150,7 @@ illustrative_tests = [
     "tests/SB+postp-addrs.litmus",
     "tests/SB+rfitt-addrtps.litmus",
     "tests/SB+rfitt-dmb.ldtps.litmus",
+    "tests/MP+dmb.st+irg.v2.litmus",
     "tests/from-tagcheck-async/LB-notagfault+po+dmb.ldpt--async.litmus",
     "tests/from-tagcheck-async/LB-tagfault+addr+dmb.ldpt--async.litmus",
     # "tests/from-tagcheck-async/LB-tagfault+ctrl+dmb.ldpt--async.litmus",

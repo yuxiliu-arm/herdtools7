@@ -1193,7 +1193,6 @@ S+dmb.sttp+pickctrl--async Allowed
 S+dmb.sttp+pickctrl--sync Allowed
 S+dmb.sttp+pickdata--async Allowed
 S+dmb.sttp+pickdata--sync Allowed
-
 MP+rel+pickaddrR-tagfault-po Forbidden
 MP+rel+pickaddrW-tagfault-po Forbidden
 MP+dmb.st+addr_asynctagfault-po Forbidden
@@ -1226,3 +1225,4 @@ MP+dmb.sypp+datapt-lrstt_W-tagfault Forbidden
 R+dmb.sttt+dsb.ld-mod Forbidden
 S+dmb.sypp+datapt-lrstt Forbidden
 coRW2-ExpTag+ImpTag-ExpTag Forbidden
+MP+dmb.st+irg.v2 Forbidden

@@ -3319,11 +3319,37 @@ module Make
         let ffff = V.intToV 0xFFFF in
         (* ChooseRandomNonExcludedTag *)
         let choose_random_non_excluded_tag exclude =
-          let do_irg n =
-            let>= () = M.add_constraint_bit_unset exclude n in
-            M.unitT n
-          in
-          List.fold_right M.altT (List.init 15 do_irg) (do_irg 15)
+          match V.as_int exclude with
+          | Some exclude ->
+            if exclude = 0xFFFF
+            then M.unitT 0
+            else
+              (* optimization: only generate states for unmasked exclude bits *)
+              let rec find_non_excluded acc i exclude =
+                if i >= 16
+                then acc
+                else
+                  let acc' = if exclude land 1 = 0 then M.unitT i :: acc else acc in
+                  find_non_excluded acc' (i + 1) (exclude lsr 1)
+              in
+              begin
+                match find_non_excluded [] 0 exclude with
+                | h :: t -> List.fold_left M.altT h t
+                | [] -> assert false (* exclude != 0xFFFF guaranteed earlier *)
+              end
+          | None ->
+            (* exclude is symbolic, use constraints instead *)
+            let>= is_ones_exclude = M.op Op.Eq ffff exclude in
+            M.choiceT
+              is_ones_exclude
+              (M.unitT 0)
+              begin
+                let do_irg n =
+                  let>= () = M.add_constraint_bit_unset exclude n in
+                  M.unitT n
+                in
+                List.fold_right M.altT (List.init 15 do_irg) (do_irg 15)
+              end
         in
         (* AArch64.NextRandomTagBit *)
         let aarch64_next_random_tag_bit lfsr =
@@ -3373,13 +3399,7 @@ module Make
             else go tag_in offset_in
         in
         let random exclude vn =
-          let>= rtag =
-            let>= is_ones_exclude = M.op Op.Eq ffff exclude in
-            M.choiceT
-              is_ones_exclude
-              (M.unitT 0)
-              (choose_random_non_excluded_tag exclude)
-          in
+          let>= rtag = choose_random_non_excluded_tag exclude in
           let tag = V.Val (Constant.Tag ("t" ^ string_of_int rtag)) in
           let>= v = M.op Op.SetTag vn tag in
           let>= rdv = write_reg_dest rd v ii in

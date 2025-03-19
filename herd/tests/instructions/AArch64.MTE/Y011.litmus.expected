@@ -1,10 +1,10 @@
 Test Y011 Required
 States 1
-0:X1=x:t0; 0:RGSR_EL1=4271104;
+0:SP=x:t15;
 Ok
 Witnesses
 Positive: 1 Negative: 0
-Condition forall (0:X1=x:t0 /\ 0:RGSR_EL1=4271104)
+Condition forall (0:SP=x:t15)
 Observation Y011 Always 1 0
-Hash=785bea6e1c072a392e709f8f31be562d
+Hash=38a12a7359ba85ca538078eb02b14547
 
