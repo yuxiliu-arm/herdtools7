@@ -4,24 +4,6 @@
 \raggedbottom
 \input{ASLmacros}
 
-% inferrule override
-\newenvironment{mathpar}{\begin{displaymath}\begin{prooftree}}{\end{prooftree}\end{displaymath}}
-\renewcommand\inferrule[3][]{\AxiomC{$\displaylines{#2}$}\LeftLabel{#1}\UnaryInfC{$\displaylines{#3}$}}
-
-% not supported by mathjax
-\renewcommand\xlongrightarrow[1]{\xrightarrow{\qquad#1\qquad}}
-\renewcommand\mathsmaller[1]{#1}
-\renewcommand\textsc[1]{\textbf{#1}}
-
-\renewcommand\nameref[1]{\ref{#1}}
-
-% fix MathJax \textbackslash only available in text mode
-\renewcommand\textbackslash[0]{\unicode{x5C}}
-
-\newcommand\empty{}
-
-\renewcommand\VerbatimInput[2][]{\lstinputlisting{#2}}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Macros for including code snippets from the ASLRef implementation
 \input{ASLTypingLines}
