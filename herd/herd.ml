@@ -110,6 +110,12 @@ let o_option =
      | "-" -> outputdir := PrettyConf.StdoutOutput
      | _ -> outputdir := PrettyConf.Outputdir s),
    " select the <dir> in which output files are saved. If not set, then files are not generated.") 
+let output_format_option =
+  ("-output-format", Arg.String (function
+    | "dot" -> output_format := PrettyConf.Dot
+    | "json" -> output_format := PrettyConf.Json
+    | _ -> raise (Arg.Bad "Invalid value for `-output-format`.")),
+   "<dot|json> generate output files in the specified format, default: dot")
 let hexa_option =
   parse_bool "-hexa" PP.hexa "print numbers in hexadecimal"
 let doshow_option =
@@ -371,6 +377,7 @@ let setup_options = Arg.align ~limit:40 ([
    Arg.String (fun x -> Opts.macros := (Some x)),
    "<name> read macro (.def) file <name>") ;
   o_option ;
+  output_format_option ;
   view_option ;
   ( "-gv",
     Arg.Unit (fun _ -> PP.view := Some View.GV),
@@ -667,6 +674,7 @@ let () =
     let byte = !byte
     let endian = !endian
     let outputdir = !outputdir
+    let output_format = !output_format
     let suffix = !suffix
     let dumpes = !dumpes
 

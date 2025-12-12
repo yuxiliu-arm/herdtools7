@@ -28,62 +28,104 @@ module Make (O : sig
   include Top_herd.PrinterConfig
   val timeout : float option
   val outputdir : PrettyConf.outputdir_mode
+  val output_format : PrettyConf.output_format
   val suffix : string
   val dumpes : bool
 end) = struct
   module PC = O.PC
 
-(* Open a dot outfile or not *)
-  let open_dot test =
+  module JsonChan : sig
+    type t
+    val make : out_channel -> t
+    val write : Json.t -> t -> unit
+    val flush : t -> unit
+    val close : t -> unit
+  end = struct
+    type t = out_channel * Json.t list ref
+
+    let make chan = chan, ref []
+    let write json (_, items) = items := json :: !items
+    let flush (chan, items) =
+      Json.pretty_to_channel chan (`List (List.rev !items));
+      output_char chan '\n';
+      Stdlib.flush chan;
+      items := []
+    let close (chan, _) = close_out chan
+  end
+
+  type ochan = DotChan of out_channel | JsonChan of JsonChan.t
+
+(* Open an output file channel, or not *)
+  let open_ochan test =
     match O.outputdir with
     | PrettyConf.NoOutputdir ->
        begin
-         match O.PC.view with
-         | Some _ ->
+         match O.output_format, O.PC.view with
+         | PrettyConf.Dot, Some _ ->
           begin try
             let f,chan = Filename.open_temp_file "herd" ".dot" in
-            Some (chan,f)
+            Some (DotChan chan,f)
           with  Sys_error msg ->
             Warn.warn_always "Cannot create temporary file: %s" msg ;
             None
           end
-         | None -> None
+         | _ -> None
        end
     | PrettyConf.StdoutOutput ->
        let fname = Test_herd.basename test in
-       Printf.fprintf stdout "\nDOTBEGIN %s\n" fname;
-       Printf.fprintf stdout "DOTCOM %s\n"
-         (let module G = Show.Generator(PC) in
-         G.generator) ;
-       Some (stdout, fname)
+       begin match O.output_format with
+       | PrettyConf.Dot ->
+           Printf.fprintf stdout "\nDOTBEGIN %s\n" fname;
+           Printf.fprintf stdout "DOTCOM %s\n"
+             (let module G = Show.Generator(PC) in G.generator);
+           Some (DotChan stdout, fname)
+       | PrettyConf.Json ->
+           Printf.fprintf stdout "\nJSONBEGIN %s\n" fname;
+           Some (JsonChan (JsonChan.make stdout), fname)
+       end
     | PrettyConf.Outputdir d ->
         let base = Test_herd.basename test in
         let base = base ^ O.suffix in
-        let f = Filename.concat d base ^ ".dot" in
-        try Some (open_out f,f) with
+        let f, wrap = match O.output_format with
+          | PrettyConf.Dot ->
+              let f = Filename.concat d base ^ ".dot" in
+              f, (fun chan -> DotChan chan)
+          | PrettyConf.Json ->
+              let f = Filename.concat d base ^ ".json" in
+              f, (fun chan -> JsonChan (JsonChan.make chan)) in
+        try Some (wrap (open_out f),f) with
         | Sys_error msg ->
             Warn.warn_always "Cannot create %s: %s" f msg ;
             None
 
-  let close_dot = function
+  let close_ochan = function
     | None -> ()
-    | Some (chan,fname) ->
+    | Some (DotChan chan,fname) ->
        match O.outputdir with
        | PrettyConf.NoOutputdir | PrettyConf.Outputdir _ ->
           if O.PC.debug then Printf.eprintf "close %s\n%!" fname ;
           close_out chan
        | PrettyConf.StdoutOutput ->
           Printf.fprintf stdout "\nDOTEND %s\n" fname
+    | Some (JsonChan chan,fname) ->
+        JsonChan.flush chan;
+        begin match O.outputdir with
+        | PrettyConf.Outputdir _ ->
+            if O.PC.debug then Printf.eprintf "close %s\n%!" fname;
+            JsonChan.close chan
+        | PrettyConf.StdoutOutput -> Printf.fprintf stdout "\nJSONEND %s\n" fname
+        | PrettyConf.NoOutputdir -> ()
+        end
 
   let my_remove name =
     try Sys.remove name
     with e ->
       Warn.warn_always "remove failed: %s" (Printexc.to_string e)
 
-  let erase_dot = match O.PC.debug, O.outputdir with
-  | false,PrettyConf.NoOutputdir -> (* Erase temp file *)
-      (function Some (_,f) -> my_remove f | None -> ())
-  | (_,PrettyConf.Outputdir _)|(_,PrettyConf.StdoutOutput)|(true,PrettyConf.NoOutputdir) -> (function _ -> ())
+  let erase_ochan ochan =
+    match O.PC.debug, O.outputdir, ochan with
+    | false, PrettyConf.NoOutputdir, Some (DotChan _,f) -> my_remove f
+    | _ -> ()
 
   let dump_results ~start_time (module R : RunTest.Outcome) =
     let open R in
@@ -95,48 +137,56 @@ end) = struct
     let event_structures = result.TR.event_structures in
 
 (* Open *)
-    let ochan = open_dot test in
+    let ochan = open_ochan test in
 (* So small a race condition... *)
-    Handler.push (fun () -> erase_dot ochan) ;
+    Handler.push (fun () -> erase_ochan ochan) ;
 (* Dump event structures ... *)
     if O.dumpes then begin
       match ochan with
       | None -> ()
-      | Some (chan, fname) ->
+      | Some (ochan, fname) ->
           let module PP = Pretty.Make(S) in
           List.iter
-            (fun es -> PP.dump_es chan test es)
+            (fun es -> match ochan with
+              | DotChan chan -> PP.dump_es chan test es
+              | JsonChan chan ->
+                  JsonChan.write (PP.Json.es_to_json_view es) chan)
             event_structures ;
-          close_dot ochan ;
-          if Misc.is_some S.O.PC.view then begin
+          close_ochan (Some (ochan,fname)) ;
+          if Misc.is_some S.O.PC.view && O.output_format = PrettyConf.Dot then begin
             let module SH = Show.Make(S.O.PC) in
             SH.show_file fname
           end ;
-          erase_dot ochan ;
+          erase_ochan (Some (ochan,fname)) ;
           Handler.pop ()
     end else
     let dump_graph =
       match ochan with
-        | Some (chan, _) -> fun exec -> PP.dump_exec_graph M.model test exec chan
+        | Some (DotChan chan, _) -> fun exec -> PP.dump_exec_graph M.model test exec chan
+        | Some (JsonChan chan, _) -> fun exec ->
+            let module Pretty = Pretty.Make(S) in
+            let json = Pretty.Json.to_json_view
+              (TR.concrete exec) (TR.relations exec) in
+            JsonChan.write json chan
         | None -> fun _ -> ()
     in
     let shown, c =
       try iter_count result.TR.exec_iter dump_graph
-      with e -> close_dot ochan; raise e
+      with e -> close_ochan ochan; raise e
     in
 (* Close *)
-    close_dot ochan ;
+    close_ochan ochan ;
     let do_show () =
 (* Show if something to show *)
       begin match ochan with
-      | Some (_,fname) when shown > 0 ->
+      | Some (DotChan _,fname) when shown > 0 ->
           let module SH = Show.Make(S.O.PC) in
           if O.PC.debug then Printf.eprintf "show %s file\n%!" fname ;
           SH.show_file fname
       | Some _|None -> ()
       end ;
 (* Erase *)
-      erase_dot ochan ;
+      erase_ochan ochan ;
       Handler.pop ()
     in
     let finals = TR.states c in
