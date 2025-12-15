@@ -256,7 +256,7 @@ end = struct
     | Fence _ -> true
     | _ -> false
 
-  let barrier_of _ = assert false
+  let barrier_of _ = None
 
   let same_barrier_id _ _ = assert false
 
