@@ -46,7 +46,7 @@ end) = struct
     let make chan = chan, ref []
     let write json (_, items) = items := json :: !items
     let flush (chan, items) =
-      Json.pretty_to_channel chan (`List (List.rev !items));
+      Json.pretty_to_channel chan (`List !items);
       output_char chan '\n';
       Stdlib.flush chan;
       items := []
@@ -101,12 +101,13 @@ end) = struct
   let close_ochan = function
     | None -> ()
     | Some (DotChan chan,fname) ->
-       match O.outputdir with
+       begin match O.outputdir with
        | PrettyConf.NoOutputdir | PrettyConf.Outputdir _ ->
           if O.PC.debug then Printf.eprintf "close %s\n%!" fname ;
           close_out chan
        | PrettyConf.StdoutOutput ->
           Printf.fprintf stdout "\nDOTEND %s\n" fname
+       end
     | Some (JsonChan chan,fname) ->
         JsonChan.flush chan;
         begin match O.outputdir with

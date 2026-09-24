@@ -1760,9 +1760,10 @@ module Make (S:SemExtra.S) : S with module S = S  = struct
     let rel_to_json_view (r : E.event_rel) =
       let mk_eiid_obj n = `Assoc [ ("eiid", `Int n) ] in
       let l =
-        E.EventRel.elements r
-        |> List.map (fun (e, e') ->
+        E.EventRel.to_seq r
+        |> Seq.map (fun (e, e') ->
              `Assoc [ ("src", mk_eiid_obj e.E.eiid); ("tgt", mk_eiid_obj e'.E.eiid) ])
+        |> List.of_seq
       in `List l
 
     let eiid_view (e : E.event) : Json.t = `Assoc [ ("eiid", `Int e.E.eiid) ]
@@ -1776,7 +1777,7 @@ module Make (S:SemExtra.S) : S with module S = S  = struct
             else
               let r =
                 if StringSet.mem tag PC.noid then
-                  E.EventRel.filter (fun (e1,e2) -> not (E.event_equal e1 e2)) r
+                  E.EventRel.restrict_rel (fun e1 e2 -> not (E.event_equal e1 e2)) r
                 else r
               in Some (tag,r))
       in
