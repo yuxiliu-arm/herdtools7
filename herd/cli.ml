@@ -210,7 +210,7 @@ end) = struct
           let final_state_id = List.assoc state_text state_ids in
           let module Pretty = Pretty.Make(S) in
           Pretty.Json.graph ~id:(Printf.sprintf "execution-%i" i)
-            ~is_valid:(CheckResult.is_valid (TR.check_result exec))
+            ~check_result:(TR.check_result exec)
             ~satisfies_post_condition:(TR.passes_check exec)
             ~final_state_id (TR.concrete exec) (TR.relations exec))
         (List.rev !executions) in
