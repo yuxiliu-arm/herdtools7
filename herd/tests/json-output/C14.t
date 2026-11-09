@@ -56,6 +56,7 @@ currently only describes plain memory and register accesses.
       {
         "id": "execution-0",
         "is_valid": true,
+        "failed_checks": [],
         "satisfies_post_condition": true,
         "final_state_id": "state-0",
         "pretty_conf": {
@@ -126,6 +127,7 @@ currently only describes plain memory and register accesses.
       {
         "id": "execution-1",
         "is_valid": true,
+        "failed_checks": [],
         "satisfies_post_condition": true,
         "final_state_id": "state-0",
         "pretty_conf": {

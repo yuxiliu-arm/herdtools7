@@ -53,7 +53,7 @@ module type S = sig
 
   module Json : sig
     val graph :
-      id:string -> is_valid:bool -> satisfies_post_condition:bool ->
+      id:string -> check_result:S.check_result -> satisfies_post_condition:bool ->
         final_state_id:string -> S.concrete -> S.rel_pp -> Json.t
   end
 
@@ -1649,6 +1649,61 @@ module Make (S:SemExtra.S) : S with module S = S  = struct
   module Json = struct
     let event_ref e = Json.int e.E.eiid
 
+    let witness_to_json witness =
+      let open CheckResult in
+      let events kind es =
+        Json.assoc ["kind", Json.string kind;
+                    "event_ids", Json.list (List.map event_ref es)] in
+      let classes kind cs =
+        Json.assoc ["kind", Json.string kind;
+                    "event_classes", Json.list
+                      (List.map (fun es -> Json.list (List.map event_ref es)) cs)] in
+      match witness with
+      | Cycle (Events es) -> events "cycle" es
+      | Cycle (Classes cs) -> classes "class_cycle" cs
+      | Reflexive (Event e) -> events "reflexive" [e]
+      | Reflexive (Class es) -> classes "class_reflexive" [es]
+      | Nonempty (Member (Event e)) -> events "member" [e]
+      | Nonempty (Member (Class es)) -> classes "class_member" [es]
+      | Nonempty (Edge (Event a,Event b)) -> events "edge" [a;b]
+      | Nonempty (Edge (Class a,Class b)) -> classes "class_edge" [a;b]
+      | Nonempty (Edge (Event _,Class _))
+      | Nonempty (Edge (Class _,Event _)) -> assert false
+
+    let failure_to_json failure =
+      let open CheckResult in
+      let predicate,negated,witness = match failure.assertion with
+        | FailedYes (predicate,witness) ->
+            predicate,false,witness_to_json witness
+        | FailedNo predicate ->
+            predicate,true,Json.assoc ["kind", Json.string "absence"] in
+      let kind = match predicate with
+        | AST.Acyclic -> "acyclic"
+        | AST.Irreflexive -> "irreflexive"
+        | AST.TestEmpty -> "empty" in
+      let position p =
+        Json.assoc ["line", Json.int p.Lexing.pos_lnum;
+                    "column", Json.int (p.Lexing.pos_cnum - p.Lexing.pos_bol)] in
+      let loc = failure.source in
+      let source =
+        if loc.TxtLoc.loc_ghost then Json.null
+        else Json.assoc
+          ["file", Json.string loc.TxtLoc.loc_start.Lexing.pos_fname;
+           "start", position loc.TxtLoc.loc_start;
+           "end", position loc.TxtLoc.loc_end] in
+      let reason = match failure.reason with
+        | AST.Txt text -> Json.string text
+        | AST.Pos loc -> Json.assoc
+            ["pos", Json.int loc.AST.pos; "len", Json.int loc.AST.len] in
+      Json.assoc
+        ["name", (match failure.name with
+          | None -> Json.null | Some name -> Json.string name);
+         "source", source;
+         "reason", reason;
+         "check", Json.assoc ["kind", Json.string kind;
+                              "negated", Json.bool negated];
+         "witness", witness]
+
     let edge relation source target =
       Json.assoc
         ["relation", Json.string relation;
@@ -1754,7 +1809,7 @@ module Make (S:SemExtra.S) : S with module S = S  = struct
     | MemFenceEvents -> "memf"
     | NonBranchEvents -> "nobranches"
 
-    let graph ~id ~is_valid ~satisfies_post_condition ~final_state_id
+    let graph ~id ~check_result ~satisfies_post_condition ~final_state_id
         conc rels =
       let es = select_es conc.S.str in
       let visible = select_event in
@@ -1824,7 +1879,10 @@ module Make (S:SemExtra.S) : S with module S = S  = struct
         (select_rfmap conc.S.rfmap);
       Json.assoc
         ["id", Json.string id;
-         "is_valid", Json.bool is_valid;
+         "is_valid", Json.bool (CheckResult.is_valid check_result);
+         "failed_checks", Json.list (match check_result with
+           | CheckResult.Valid -> []
+           | CheckResult.Invalid failures -> List.map failure_to_json failures);
          "satisfies_post_condition", Json.bool satisfies_post_condition;
          "final_state_id", Json.string final_state_id;
          "pretty_conf", Json.assoc

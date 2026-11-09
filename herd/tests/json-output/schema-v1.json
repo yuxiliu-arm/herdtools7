@@ -582,6 +582,7 @@
       "required": [
         "id",
         "is_valid",
+        "failed_checks",
         "satisfies_post_condition",
         "final_state_id",
         "pretty_conf",
@@ -597,6 +598,13 @@
         "is_valid": {
           "type": "boolean",
           "description": "Indicates if the execution is allowed by the cat model, not to be confused with satisfies_post_condition."
+        },
+        "failed_checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/failedCheck"
+          },
+          "description": "Reached ordinary CAT check failures in evaluation order; empty when none were recorded."
         },
         "satisfies_post_condition": {
           "type": "boolean",
@@ -624,6 +632,316 @@
           "items": {
             "$ref": "#/$defs/edge"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "checkPosition": {
+      "type": "object",
+      "required": [
+        "line",
+        "column"
+      ],
+      "properties": {
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "$ref": "#/$defs/index"
+        }
+      },
+      "additionalProperties": false
+    },
+    "checkSource": {
+      "type": "object",
+      "required": [
+        "file",
+        "start",
+        "end"
+      ],
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/checkPosition"
+        },
+        "end": {
+          "$ref": "#/$defs/checkPosition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "checkReason": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "required": [
+            "pos",
+            "len"
+          ],
+          "properties": {
+            "pos": {
+              "$ref": "#/$defs/index"
+            },
+            "len": {
+              "$ref": "#/$defs/index"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "checkWitness": {
+      "description": "Native counterexample. Event references may identify events omitted by display filters. Classes retain their complete membership; cycles repeat the first node at the end.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_ids"
+          ],
+          "properties": {
+            "kind": {
+              "const": "cycle"
+            },
+            "event_ids": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/index"
+              },
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_classes"
+          ],
+          "properties": {
+            "kind": {
+              "const": "class_cycle"
+            },
+            "event_classes": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/index"
+                }
+              },
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_ids"
+          ],
+          "properties": {
+            "kind": {
+              "const": "reflexive"
+            },
+            "event_ids": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/index"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_classes"
+          ],
+          "properties": {
+            "kind": {
+              "const": "class_reflexive"
+            },
+            "event_classes": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/index"
+                }
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_ids"
+          ],
+          "properties": {
+            "kind": {
+              "const": "edge"
+            },
+            "event_ids": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/index"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_classes"
+          ],
+          "properties": {
+            "kind": {
+              "const": "class_edge"
+            },
+            "event_classes": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/index"
+                }
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_ids"
+          ],
+          "properties": {
+            "kind": {
+              "const": "member"
+            },
+            "event_ids": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/index"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_classes"
+          ],
+          "properties": {
+            "kind": {
+              "const": "class_member"
+            },
+            "event_classes": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/index"
+                }
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "absence"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "failedCheck": {
+      "type": "object",
+      "required": [
+        "name",
+        "source",
+        "reason",
+        "check",
+        "witness"
+      ],
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/checkSource"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "$ref": "#/$defs/checkReason"
+        },
+        "check": {
+          "type": "object",
+          "required": [
+            "kind",
+            "negated"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "acyclic",
+                "irreflexive",
+                "empty"
+              ]
+            },
+            "negated": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "witness": {
+          "$ref": "#/$defs/checkWitness"
         }
       },
       "additionalProperties": false

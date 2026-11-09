@@ -77,6 +77,7 @@
       {
         "id": "execution-0",
         "is_valid": true,
+        "failed_checks": [],
         "satisfies_post_condition": true,
         "final_state_id": "state-3",
         "pretty_conf": {
@@ -482,6 +483,19 @@
       {
         "id": "execution-1",
         "is_valid": false,
+        "failed_checks": [
+          {
+            "name": "external",
+            "source": {
+              "file": "./libdir/aarch64.cat",
+              "start": { "line": 160, "column": 0 },
+              "end": { "line": 160, "column": 26 }
+            },
+            "reason": "irreflexive ob as external",
+            "check": { "kind": "irreflexive", "negated": false },
+            "witness": { "kind": "reflexive", "event_ids": [ 0 ] }
+          }
+        ],
         "satisfies_post_condition": true,
         "final_state_id": "state-3",
         "pretty_conf": {
